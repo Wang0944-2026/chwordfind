@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>馬年成語找字大作戰 (AI旗艦版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
+        body {
+            font-family: 'Zen Maru Gothic', 'Microsoft JhengHei', sans-serif;
+            background-color: #FFF3E0;
+            background-image: 
+                radial-gradient(#FFE0B2 20%, transparent 20%), 
+                radial-gradient(#FFE0B2 20%, transparent 20%);
+            background-position: 0 0, 40px 40px;
+            background-size: 80px 80px;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 頂部資訊列 */
+        .header-panel {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 6px 0 #E0E0E0;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 25px;
+            width: fit-content;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 字海網格 */
+        .word-search-grid {
+            display: grid;
+            gap: 6px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 8px solid #FFCC80;
+            position: relative;
+            touch-action: none;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #FAFAFA;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            color: #5D4037;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #EEE;
+            box-shadow: 0 2px 0 #DDD;
+        }
+
+        .cell:hover {
+            background-color: #FFF8E1;
+            transform: translateY(-2px);
+        }
+
+        .cell.selected {
+            background-color: #B2EBF2;
+            border-color: #00BCD4;
+            color: #006064;
+            transform: scale(1.1);
+            box-shadow: 0 4px 0 #0097A7;
+            z-index: 10;
+        }
+
+        .cell.found {
+            background-color: #C8E6C9 !important;
+            border-color: #4CAF50 !important;
+            color: #1B5E20 !important;
+            box-shadow: none !important;
+            animation: pop 0.4s ease;
+        }
+
+        /* 愛心樣式 */
+        .heart {
+            color: #FF5252;
+            font-size: 28px;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 2px 0 #C62828);
+        }
+        .heart.lost {
+            color: #E0E0E0;
+            transform: scale(0.8);
+            filter: none;
+        }
+
+        /* 底部成語清單 */
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 600px;
+        }
+        
+        .word-tag {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            color: #888;
+            border: 2px dashed #CCC;
+            transition: all 0.3s;
+        }
+
+        .word-tag.found {
+            background: #81C784;
+            color: white;
+            border: 2px solid #4CAF50;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+            border: 8px solid #FFAB40;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .meaning-box {
+            background: #FFF3E0;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            color: #5D4037;
+            text-align: left;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            border-left: 5px solid #FF9800;
+            width: 100%;
+        }
+
+        .ai-box {
+            background: #F3E5F5;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            color: #4A148C;
+            text-align: left;
+            font-size: 1rem;
+            line-height: 1.6;
+            border-left: 5px solid #9C27B0;
+            width: 100%;
+            display: none;
+        }
+        
+        .ai-box.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .quiz-box {
+            background: #E0F2F1;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            color: #00695C;
+            text-align: left;
+            font-size: 1rem;
+            border-left: 5px solid #009688;
+            width: 100%;
+            display: none;
+        }
+        
+        .quiz-box.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .quiz-option {
+            background: white;
+            border: 2px solid #80CBC4;
+            padding: 8px 12px;
+            margin-top: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover { background: #B2DFDB; }
+        .quiz-option.correct { background: #C8E6C9; border-color: #4CAF50; color: #1B5E20; }
+        .quiz-option.wrong { background: #FFCDD2; border-color: #EF5350; color: #B71C1C; }
+
+        .story-box {
+            background: #E3F2FD;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            color: #0D47A1;
+            text-align: left;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            border-left: 5px solid #2196F3;
+            width: 100%;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .story-box.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        /* Image Display Area */
+        .image-display {
+            width: 100%;
+            height: 200px;
+            background: #EEE;
+            border-radius: 15px;
+            margin: 10px 0;
+            display: none;
+            background-size: cover;
+            background-position: center;
+            border: 4px solid #FFAB40;
+            position: relative;
+        }
+        
+        .image-display.show {
+            display: block;
+            animation: pop 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            background: #4DD0E1;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0097A7;
+            transition: all 0.1s;
+            margin: 4px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        .btn:disabled {
+            background-color: #B0BEC5;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ai { background: #BA68C8; box-shadow: 0 4px 0 #7B1FA2; }
+        .btn-ai:hover { background: #AB47BC; }
+        
+        .btn-origin { background: #FF7043; box-shadow: 0 4px 0 #D84315; }
+        .btn-origin:hover { background: #F4511E; }
+
+        .btn-draw { background: #FF4081; box-shadow: 0 4px 0 #C51162; }
+        .btn-draw:hover { background: #F50057; }
+
+        .btn-quiz { background: #009688; box-shadow: 0 4px 0 #00695C; }
+        .btn-quiz:hover { background: #00796B; }
+
+        .btn-story {
+            background: #42A5F5;
+            box-shadow: 0 4px 0 #1565C0;
+            font-size: 1.1rem;
+            padding: 12px 25px;
+        }
+
+        .btn-hint {
+            background: #FFB74D;
+            box-shadow: 0 4px 0 #F57C00;
+            padding: 8px 20px;
+            font-size: 1rem;
+        }
+        
+        /* 載入動畫 */
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+        .shake { animation: shake 0.5s; }
+        
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            .cell { width: 32px; height: 32px; font-size: 16px; gap: 4px; }
+            .word-search-grid { gap: 4px; padding: 10px; }
+            .header-panel { gap: 10px; padding: 8px 15px; }
+            .btn { padding: 8px 12px; font-size: 0.85rem; }
+            .modal-content { padding: 20px; width: 95%; }
+            .flex-wrap { gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header-panel">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-trophy text-yellow-400 text-2xl"></i>
+            <span class="text-2xl font-bold text-gray-700" id="score-display">0</span>
+        </div>
+        <div class="text-2xl text-gray-300 mx-2">|</div>
+        <div class="heart-container flex gap-1" id="heart-display">
+            <i class="fas fa-heart heart"></i>
+            <i class="fas fa-heart heart"></i>
+            <i class="fas fa-heart heart"></i>
+        </div>
+        <div class="text-2xl text-gray-300 mx-2">|</div>
+        <button onclick="getAIHint()" id="btn-hint" class="btn btn-hint flex items-center gap-2">
+            <i class="fas fa-magic"></i> ✨ AI 提示
+        </button>
+        <button onclick="resetGame()" class="text-gray-400 hover:text-blue-400 ml-2">
+            <i class="fas fa-redo-alt text-xl"></i>
+        </button>
+    </div>
+
+    <div class="text-center mb-4">
+        <h1 class="text-3xl font-bold text-[#5D4037] mb-2">🐴 馬年成語找字 (AI旗艦版)</h1>
+        <p class="text-gray-500 font-bold bg-white px-4 py-1 rounded-full inline-block shadow-sm">
+            <i class="fas fa-info-circle text-blue-400"></i> 點選成語的「首字」和「尾字」
+        </p>
+    </div>
+
+    <div id="grid-container" class="word-search-grid">
+        <!-- Grid JS Generated -->
+    </div>
+
+    <div id="word-list-container" class="word-list">
+        <!-- Word List JS Generated -->
+    </div>
+</div>
+
+<!-- 解釋/AI Modal -->
+<div id="meaning-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="absolute top-0 left-0 w-full h-4 bg-green-400"></div>
+        <div class="flex items-center justify-between w-full mt-2">
+            <i class="fas fa-check-circle text-4xl text-green-400"></i>
+            <button onclick="closeMeaningModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <h2 id="modal-word" class="text-4xl font-bold text-[#5D4037] mb-2 mt-2">成語名稱</h2>
+        
+        <div class="meaning-box">
+            <p id="modal-meaning">這裡會顯示成語的解釋...</p>
+        </div>
+
+        <!-- 圖片顯示區 -->
+        <div id="ai-image-box" class="image-display">
+            <div class="absolute inset-0 flex items-center justify-center text-gray-400" id="img-loading">
+                <span class="loading-dots">AI 繪圖中</span>
+            </div>
+        </div>
+
+        <!-- 文字內容顯示區 (造句/典故) -->
+        <div id="ai-content-box" class="ai-box">
+            <p id="ai-content-text"></p>
+        </div>
+
+        <!-- 測驗顯示區 -->
+        <div id="ai-quiz-box" class="quiz-box">
+            <p id="quiz-question" class="font-bold mb-2"></p>
+            <div id="quiz-options"></div>
+        </div>
+
+        <!-- 按鈕群組 -->
+        <div class="flex flex-wrap justify-center mt-4 w-full" id="modal-buttons">
+            <button onclick="getAISentence()" id="btn-ai-sentence" class="btn btn-ai">
+                <i class="fas fa-pencil-alt"></i> 造句
+            </button>
+            <button onclick="getAIOrigin()" id="btn-ai-origin" class="btn btn-origin">
+                <i class="fas fa-book-open"></i> 典故
+            </button>
+            <button onclick="getAIImage()" id="btn-ai-draw" class="btn btn-draw">
+                <i class="fas fa-palette"></i> 繪圖
+            </button>
+            <button onclick="getAIQuiz()" id="btn-ai-quiz" class="btn btn-quiz">
+                <i class="fas fa-question-circle"></i> 測驗
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- AI Hint Modal -->
+<div id="hint-modal" class="modal-overlay">
+    <div class="modal-content" style="border-color: #AB47BC;">
+        <div class="absolute top-0 left-0 w-full h-4 bg-purple-400"></div>
+        <i class="fas fa-hat-wizard text-5xl text-purple-400 mb-4 mt-4"></i>
+        <h2 class="text-2xl font-bold text-[#5D4037] mb-2">✨ AI 智慧提示</h2>
+        
+        <div class="meaning-box" style="border-left-color: #AB47BC; background: #F3E5F5;">
+            <p id="hint-content" class="text-purple-900 font-medium">正在思考謎題<span class="loading-dots"></span></p>
+        </div>
+
+        <button onclick="closeHintModal()" class="btn btn-ai mt-2">謝謝 AI 老師！</button>
+    </div>
+</div>
+
+<!-- 遊戲結束/故事獎勵 Modal -->
+<div id="game-over-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="absolute top-0 left-0 w-full h-4 bg-yellow-400"></div>
+        <i id="go-icon" class="fas fa-crown text-6xl text-yellow-400 mb-4 mt-4"></i>
+        <h2 id="go-title" class="text-3xl font-bold text-gray-700 mb-2">恭喜過關!</h2>
+        <p id="go-msg" class="text-gray-500 mb-4">你找到了所有的馬年成語！</p>
+        
+        <!-- AI 故事區 -->
+        <div id="ai-story-box" class="story-box">
+            <p id="ai-story-text"></p>
+        </div>
+
+        <div class="flex flex-col gap-2 w-full items-center">
+            <button onclick="getAIStory()" id="btn-ai-story" class="btn btn-story hidden">
+                <i class="fas fa-gift"></i> 🎁 領取 AI 祝福故事
+            </button>
+            <button onclick="resetGame()" class="btn mt-2" style="background:#78909C; box-shadow: 0 4px 0 #546E7A;">
+                再玩一次
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Gemini & Imagen API ---
+    const apiKey = ""; 
+
+    async function callGeminiAPI(promptText, isJson = false) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ parts: [{ text: promptText }] }]
+        };
+
+        // 若需要 JSON 格式，則啟用強制結構化輸出
+        if (isJson) {
+            payload.generationConfig = {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        question: { type: "STRING" },
+                        options: { type: "ARRAY", items: { type: "STRING" } },
+                        correctIndex: { type: "INTEGER" }
+                    },
+                    required: ["question", "options", "correctIndex"]
+                }
+            };
+        }
+
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        let lastError;
+
+        // 實作指數型退避重試 (Exponential Backoff)
+        for (let i = 0; i <= delays.length; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error(`連線錯誤 (${response.status})`);
+                
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error("回傳格式異常");
+                }
+            } catch (error) {
+                lastError = error;
+                if (i < delays.length) {
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+        }
+        throw new Error("AI 暫時連線不穩，請稍後重試。");
+    }
+
+    async function callImagenAPI(promptText) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+        const payload = {
+            instances: [{ prompt: promptText }],
+            parameters: { sampleCount: 1 }
+        };
+
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        for (let i = 0; i <= delays.length; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`連線錯誤 (${response.status})`);
+                const data = await response.json();
+                return data.predictions[0].bytesBase64Encoded;
+            } catch (error) {
+                if (i === delays.length) throw new Error("繪圖失敗");
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
+    // --- Game Data ---
+    const wordData = [
+        { 
+            word: "馬到成功", 
+            clue: "比喻事情順利，一開始就取得勝利。",
+            origin: "【出處】元代無名氏《小尉遲》第一折：「那老兒得了本子，拿在馬上，這叫做馬到成功。」<br><br>【小故事】古代將領騎著戰馬出戰，一到陣前就立刻打敗敵人，取得勝利。現在多用來祝賀別人事情一開始就能順利成功，是很受歡迎的吉祥話。",
+            sentences: [
+                "祝你這次的期末考馬到成功，拿到好成績！",
+                "哥哥準備了很久的演講比賽，一定能馬到成功。",
+                "大家合作無間，讓這次的校慶活動馬到成功。",
+                "只要充滿信心，做什麼事情都能馬到成功。",
+                "教練鼓勵隊員們，預祝大家在明天的比賽馬到成功。"
+            ],
+            quiz: {
+                question: "「馬到成功」最適合用在什麼時候？",
+                options: ["祝賀事情一開始就順利", "形容駿馬奔跑速度極快", "安慰朋友比賽遇到失敗"],
+                correctIndex: 0
+            }
+        },
+        { 
+            word: "一馬當先", 
+            clue: "趕在眾人之前，領先在前。",
+            origin: "【出處】明代施耐庵《水滸傳》第九十六回：「倘蒙恩相差遣，盧某一馬當先，萬死不辭。」<br><br>【小故事】在古代的戰場上，作戰時勇敢的將領會騎著戰馬，衝在所有軍隊的最前面帶領大家。現在用來形容人帶頭走在最前面，或是做事非常積極主動，勇於帶領團隊。",
+            sentences: [
+                "大隊接力一鳴槍，小明就一馬當先衝了出去。",
+                "班長總是一馬當先地幫忙老師搬運重物。",
+                "遇到困難時，他總是一馬當先幫大家解決問題。",
+                "在馬拉松比賽中，她一馬當先遙遙領先其他選手。",
+                "學校舉辦大掃除，他一馬當先拿起掃把開始掃地。"
+            ],
+            quiz: {
+                question: "如果要形容一個人「一馬當先」，代表他表現得如何？",
+                options: ["害怕危險總是躲在最後", "積極帶頭跑在隊伍前面", "喜歡騎著馬在草原散步"],
+                correctIndex: 1
+            }
+        },
+        { 
+            word: "千軍萬馬", 
+            clue: "形容兵馬眾多，聲勢浩大。",
+            origin: "【出處】《南史·陳慶之傳》：「名將大將莫自牢，千軍萬馬避白袍。」<br><br>【小故事】南北朝時期，名將陳慶之常穿白袍，帶兵打仗非常厲害，當時有「千軍萬馬避白袍」的說法，形容軍隊數量極多、聲勢浩大。現在用來形容人馬眾多或是聲勢極為壯闊。",
+            sentences: [
+                "尼加拉瀑布的水流宛如千軍萬馬般奔騰而下。",
+                "跨年晚會的廣場上人潮擁擠，猶如千軍萬馬。",
+                "他的氣勢就像千軍萬馬，無人能敵。",
+                "海嘯來襲的聲音如同千軍萬馬在齊步奔跑。",
+                "考場外站滿了陪考的家長，場面像千軍萬馬般壯觀。"
+            ],
+            quiz: {
+                question: "「千軍萬馬」通常用來形容什麼樣的場面？",
+                options: ["形容環境非常安靜無聲", "形容只有幾個人的聚會", "形容聲勢浩大人數極多"],
+                correctIndex: 2
+            }
+        },
+        { 
+            word: "天馬行空", 
+            clue: "比喻才思敏捷，豪放不羈。",
+            origin: "【出處】元代劉廷振《薩天錫詩集序》：「其所以神化而超出于眾表者，殆猶天馬行空而步驟不凡。」<br><br>【小故事】「天馬」是指傳說中能在天空中騰空飛馳的神馬，飛行時不受任何阻礙。現在多用來比喻一個人的才思敏捷，想法非常豐富、奇特而不受世俗拘束。",
+            sentences: [
+                "這篇科幻作文的想法天馬行空，非常有趣。",
+                "弟弟畫的圖總是天馬行空，充滿了無限創意。",
+                "他經常有一些天馬行空的奇妙點子。",
+                "童話故事裡的魔法世界通常都是天馬行空的。",
+                "雖然想像可以天馬行空，但做事還是要腳踏實地。"
+            ],
+            quiz: {
+                question: "如果老師說你的想像力「天馬行空」，意思是？",
+                options: ["不受拘束充滿豐富創意", "只會看著天空發呆做夢", "想法非常無聊沒有變化"],
+                correctIndex: 0
+            }
+        },
+        { 
+            word: "青梅竹馬", 
+            clue: "形容男女小時候天真無邪，在一起玩耍。",
+            origin: "【出處】唐代李白《長干行》：「郎騎竹馬來，遶床弄青梅。同居長干里，兩小無嫌猜。」<br><br>【小故事】唐代大詩人李白在詩中描寫小男孩把竹竿當作馬騎著玩，小女孩則在一旁玩弄著青色的梅子，兩人天真無邪。後來這個成語就被用來指從小一起長大、感情非常好的玩伴。",
+            sentences: [
+                "我和鄰居小美是從小玩到大的青梅竹馬。",
+                "他們兩人是青梅竹馬，從小感情就一直很好。",
+                "擁有青梅竹馬的玩伴，是最珍貴的童年回憶。",
+                "故事的主角是一對感情深厚的青梅竹馬。",
+                "這對青梅竹馬即使長大後，依然保持著聯絡。"
+            ],
+            quiz: {
+                question: "「青梅竹馬」是指什麼樣的關係？",
+                options: ["喜歡一起吃梅子的朋友", "從小一起長大感情很好", "一起在農場養馬的鄰居"],
+                correctIndex: 1
+            }
+        },
+        { 
+            word: "走馬看花", 
+            clue: "形容觀察事物不深入，只是粗略地看看。",
+            origin: "【出處】唐代孟郊《登科後》：「春風得意馬蹄疾，一日看盡長安花。」<br><br>【小故事】唐代詩人孟郊考中進士後非常高興，寫下了這首詩。他騎著快馬在春風中奔馳，覺得一天之內就能看遍長安城裡所有的美麗花朵。因為騎馬跑得快，看花只能粗略地看。後來比喻觀察事物不深入，只是匆忙看過。",
+            sentences: [
+                "這次參觀博物館的時間太短，只能走馬看花很可惜。",
+                "讀書不能走馬看花，要仔細理解書中的內容。",
+                "我們旅行的時間不夠，只能走馬看花地逛一圈。",
+                "他做事總是走馬看花不夠仔細，所以經常出錯。",
+                "走馬看花式的旅遊，無法真正體會當地風情。"
+            ],
+            quiz: {
+                question: "學習時如果「走馬看花」，會有什麼結果？",
+                options: ["把書本內容學得非常精通", "沒有深入了解只隨便看看", "學會怎麼騎著馬到處遊玩"],
+                correctIndex: 1
+            }
+        },
+        { 
+            word: "老馬識途", 
+            clue: "比喻有經驗的人對情況熟悉，能起引導作用。",
+            origin: "【出處】《韓非子·說林上》：「管仲曰：『老馬之智可用也。』乃放老馬而隨之，遂得道。」<br><br>【小故事】春秋時代，齊桓公帶兵去攻打孤竹國，春天出發，冬天回來時卻在深山中迷了路。宰相管仲提議解開老馬的韁繩，讓老馬在前面走，軍隊跟在後面，最後果然靠著老馬的記憶成功找到了出路。比喻有經驗的人對情況熟悉，能引導別人。",
+            sentences: [
+                "爺爺對這片森林很熟，就像老馬識途一樣。",
+                "有他這位老馬識途的嚮導帶路，我們絕對不會迷路。",
+                "遇到工作難題時，請教老馬識途的前輩準沒錯。",
+                "他在這行業很久了，老馬識途經驗非常豐富。",
+                "藉助老馬識途的經驗，我們少走了很多彎路。"
+            ],
+            quiz: {
+                question: "為什麼我們需要「老馬識途」的人幫忙？",
+                options: ["因為他們會幫忙餵養馬匹", "因為他們年紀很大受尊敬", "因為他們經驗豐富能帶路"],
+                correctIndex: 2
+            }
+        },
+        { 
+            word: "塞翁失馬", 
+            clue: "比喻暫時受到損失，也許反而因此得到好處。",
+            origin: "【出處】《淮南子·人間訓》：「近塞上之人有善術者，馬無故亡而入胡。人皆弔之，其父曰：『此何遽不為福乎？』」<br><br>【小故事】古代邊塞有個老翁丟了一匹馬，鄰居都來安慰他，他卻說這未必是壞事。幾個月後，那匹馬居然帶了一匹駿馬回來。鄰居來祝賀，他又說這未必是好事。後來兒子騎駿馬摔斷腿，卻因此不用當兵保全了性命。比喻一時受到損失，也許反而因此得到好處。",
+            sentences: [
+                "雖然比賽輸了，但塞翁失馬，我們學到很多經驗。",
+                "錯過火車卻塞翁失馬，在車站遇到多年不見的好友。",
+                "俗話說塞翁失馬焉知非福，別因為一時失敗就氣餒。",
+                "這次沒得名就當作塞翁失馬，下次再繼續努力。",
+                "弄丟錢包雖然倒楣，但塞翁失馬學到了保管教訓。"
+            ],
+            quiz: {
+                question: "「塞翁失馬」告訴我們什麼道理？",
+                options: ["馬匹不見了就絕對找不回", "暫時損失有時會帶來好處", "千萬不要在邊疆地區養馬"],
+                correctIndex: 1
+            }
+        },
+        { 
+            word: "龍馬精神", 
+            clue: "形容精神健旺、充沛。（吉祥話）",
+            origin: "【出處】唐代李郢《上裴晉公》：「四朝憂國鬢如絲，龍馬精神海鶴姿。」<br><br>【小故事】「龍馬」是古代傳說中一種形狀像龍的駿馬，非常神威且充滿活力。古人用龍馬來比喻老臣雖然年邁，但依然精神抖擻。現在人們廣泛用這個詞來形容人精神健旺、充滿活力，是新年非常受歡迎的吉祥祝賀語。",
+            sentences: [
+                "祝爺爺新年快樂，身體健康，永遠保持龍馬精神！",
+                "看他每天早上都在公園做運動，真是龍馬精神。",
+                "雖然已經八十歲了，奶奶依然龍馬精神到處旅遊。",
+                "只要保持龍馬精神，就能充滿活力地迎接挑戰。",
+                "希望大家新的一年都能保持龍馬精神事事順心！"
+            ],
+            quiz: {
+                question: "新年時祝長輩「龍馬精神」，是希望他們怎樣？",
+                options: ["變成一條能在天上飛的龍", "精神非常健旺且充滿活力", "買一匹非常會跑的好馬匹"],
+                correctIndex: 1
+            }
+        },
+        { 
+            word: "萬馬奔騰", 
+            clue: "形容聲勢浩大、場面熱烈。（吉祥話）",
+            origin: "【出處】宋代劉一止《水調歌頭》：「萬馬且奔騰。」明代凌濛初《初刻拍案驚奇》中亦有相關描述。<br><br>【小故事】形容成千上萬匹戰馬聚集在一起共同奔跑的樣子，馬蹄聲震耳欲聾。現在常用來形容事業或群眾活動的聲勢非常浩大，或是水流、氣流等場面極為熱烈壯觀、不可阻擋。",
+            sentences: [
+                "尼加拉瀑布的水勢如同萬馬奔騰般，非常壯觀。",
+                "運動會開幕時，全場學生的歡呼聲猶如萬馬奔騰。",
+                "雷雨降臨前，天空中傳來萬馬奔騰般的巨大雷聲。",
+                "過年時鞭炮聲此起彼落，氣勢如萬馬奔騰般熱鬧。",
+                "大雨過後河水暴漲，萬馬奔騰般地沖向下游。"
+            ],
+            quiz: {
+                question: "「萬馬奔騰」最適合用來形容下列哪一種聲音？",
+                options: ["夜晚樹林微弱的蟲鳴聲音", "圖書館裡面安靜翻書聲音", "瀑布轟隆隆的巨大水流聲"],
+                correctIndex: 2
+            }
+        }
+    ];
+
+    const fillerChars = "馬福春喜樂安康大吉大利財源滾滾心想事成日日高升平平安安年年有餘花開富貴金玉滿堂笑口常開五福臨門上下左右東西南北山川河流風雨雷電美好時光歡樂";
+
+    const GRID_SIZE = 11;
+    let grid = [];
+    let placedWords = [];
+    let foundWords = [];
+    let lives = 3;
+    let score = 0;
+    let selectionStart = null;
+    let currentModalWord = null;
+
+    function initGame() {
+        lives = 3;
+        score = 0;
+        foundWords = [];
+        selectionStart = null;
+        updateUI();
+        
+        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('show'));
+        // 重置 UI 狀態
+        resetModalContent();
+        document.getElementById('ai-story-box').classList.remove('show');
+        document.getElementById('btn-ai-story').classList.add('hidden');
+
+        generateGrid();
+        renderGrid();
+        renderWordList();
+    }
+
+    function resetModalContent() {
+        document.getElementById('ai-content-box').classList.remove('show');
+        document.getElementById('ai-content-text').innerHTML = '';
+        document.getElementById('ai-image-box').classList.remove('show');
+        document.getElementById('ai-image-box').style.backgroundImage = '';
+        document.getElementById('img-loading').style.display = 'flex';
+        document.getElementById('ai-quiz-box').classList.remove('show');
+        
+        const buttons = document.querySelectorAll('#modal-buttons button');
+        buttons.forEach(btn => btn.disabled = false);
+        
+        document.getElementById('btn-ai-sentence').innerHTML = '<i class="fas fa-pencil-alt"></i> 造句';
+        document.getElementById('btn-ai-origin').innerHTML = '<i class="fas fa-book-open"></i> 典故';
+        document.getElementById('btn-ai-draw').innerHTML = '<i class="fas fa-palette"></i> 繪圖';
+        document.getElementById('btn-ai-quiz').innerHTML = '<i class="fas fa-question-circle"></i> 測驗';
+    }
+
+    function generateGrid() {
+        grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
+        placedWords = [];
+        let wordsToPlace = [...wordData].sort(() => 0.5 - Math.random());
+
+        for (let wordObj of wordsToPlace) {
+            placeWord(wordObj);
+        }
+
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                if (grid[r][c] === null) {
+                    grid[r][c] = {
+                        char: fillerChars[Math.floor(Math.random() * fillerChars.length)],
+                        isTarget: false
+                    };
+                }
+            }
+        }
+    }
+
+    function placeWord(wordObj) {
+        const directions = [ {dr: 0, dc: 1}, {dr: 1, dc: 0}, {dr: 1, dc: 1} ];
+        for (let attempt = 0; attempt < 100; attempt++) {
+            const dir = directions[Math.floor(Math.random() * directions.length)];
+            const word = wordObj.word;
+            const len = word.length;
+            let startR = Math.floor(Math.random() * GRID_SIZE);
+            let startC = Math.floor(Math.random() * GRID_SIZE);
+            let endR = startR + (len - 1) * dir.dr;
+            let endC = startC + (len - 1) * dir.dc;
+
+            if (endR >= GRID_SIZE || endC >= GRID_SIZE) continue;
+
+            let canPlace = true;
+            for (let i = 0; i < len; i++) {
+                let r = startR + i * dir.dr;
+                let c = startC + i * dir.dc;
+                if (grid[r][c] !== null && grid[r][c].char !== word[i]) {
+                    canPlace = false;
+                    break;
+                }
+            }
+
+            if (canPlace) {
+                let wordCells = [];
+                for (let i = 0; i < len; i++) {
+                    let r = startR + i * dir.dr;
+                    let c = startC + i * dir.dc;
+                    grid[r][c] = { char: word[i], isTarget: true };
+                    wordCells.push({r, c});
+                }
+                placedWords.push({
+                    word: word,
+                    clue: wordObj.clue,
+                    cells: wordCells,
+                    start: {r: startR, c: startC},
+                    end: {r: endR, c: endC}
+                });
+                return;
+            }
+        }
+    }
+
+    function renderGrid() {
+        const container = document.getElementById('grid-container');
+        container.innerHTML = '';
+        container.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+        
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = grid[r][c].char;
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.onclick = () => handleCellClick(r, c);
+                container.appendChild(cell);
+            }
+        }
+    }
+
+    function renderWordList() {
+        const list = document.getElementById('word-list-container');
+        list.innerHTML = '';
+        wordData.forEach(w => {
+            // 修改：只有當成語被找到時才顯示 (移除下方的提示)
+            if (foundWords.includes(w.word)) {
+                const tag = document.createElement('div');
+                tag.className = 'word-tag found';
+                tag.innerHTML = `<i class="fas fa-check"></i> ${w.word}`;
+                list.appendChild(tag);
+            }
+        });
+    }
+
+    function handleCellClick(r, c) {
+        if (lives <= 0) return;
+        if (isCellFound(r, c)) return;
+
+        if (!selectionStart) {
+            selectionStart = {r, c};
+            highlightCell(r, c, true);
+        } else {
+            const start = selectionStart;
+            const end = {r, c};
+            if (start.r === end.r && start.c === end.c) {
+                clearSelection();
+                return;
+            }
+            checkSelection(start, end);
+            clearSelection();
+        }
+    }
+
+    function isCellFound(r, c) {
+        const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+        return cell && cell.classList.contains('found');
+    }
+
+    function highlightCell(r, c, active) {
+        const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+        if (active) cell.classList.add('selected');
+        else cell.classList.remove('selected');
+    }
+
+    function clearSelection() {
+        selectionStart = null;
+        document.querySelectorAll('.cell.selected').forEach(el => el.classList.remove('selected'));
+    }
+
+    function checkSelection(start, end) {
+        const dr = end.r - start.r;
+        const dc = end.c - start.c;
+        const isHorizontal = (dr === 0);
+        const isVertical = (dc === 0);
+        const isDiagonal = (Math.abs(dr) === Math.abs(dc));
+
+        if (!isHorizontal && !isVertical && !isDiagonal) {
+            handleError();
+            return;
+        }
+
+        const steps = Math.max(Math.abs(dr), Math.abs(dc));
+        const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+        const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+
+        let selectedWord = "";
+        let selectedPath = [];
+
+        for (let i = 0; i <= steps; i++) {
+            let r = start.r + i * stepR;
+            let c = start.c + i * stepC;
+            selectedWord += grid[r][c].char;
+            selectedPath.push({r, c});
+        }
+
+        const reversedWord = selectedWord.split('').reverse().join('');
+        const target = placedWords.find(pw => pw.word === selectedWord || pw.word === reversedWord);
+
+        if (target && !foundWords.includes(target.word)) {
+            foundWords.push(target.word);
+            score += 100;
+            selectedPath.forEach(pos => {
+                const cell = document.querySelector(`.cell[data-r="${pos.r}"][data-c="${pos.c}"]`);
+                cell.classList.add('found');
+            });
+            updateUI();
+            renderWordList();
+            showMeaning(target);
+            if (foundWords.length === wordData.length) {
+                setTimeout(gameWin, 1500);
+            }
+        } else {
+            handleError();
+        }
+    }
+
+    function handleError() {
+        lives--;
+        updateUI();
+        const gridEl = document.getElementById('grid-container');
+        gridEl.classList.add('shake');
+        setTimeout(() => gridEl.classList.remove('shake'), 500);
+        if (lives <= 0) setTimeout(gameOver, 500);
+    }
+
+    function showMeaning(wordObj) {
+        currentModalWord = wordObj.word;
+        const modal = document.getElementById('meaning-modal');
+        document.getElementById('modal-word').innerText = wordObj.word;
+        document.getElementById('modal-meaning').innerText = wordObj.clue;
+        
+        resetModalContent();
+        
+        modal.classList.add('show');
+    }
+
+    // --- AI Features ---
+
+    async function getAISentence() {
+        const btn = document.getElementById('btn-ai-sentence');
+        const box = document.getElementById('ai-content-box');
+        const content = document.getElementById('ai-content-text');
+
+        if (!currentModalWord) return;
+        
+        box.classList.add('show');
+        document.getElementById('ai-image-box').classList.remove('show');
+        document.getElementById('ai-quiz-box').classList.remove('show');
+
+        // 顯示思考中的狀態
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 思考中...';
+        btn.disabled = true;
+        content.innerHTML = 'AI 老師正在動腦筋想一個好句子...<span class="loading-dots"></span>';
+        
+        // 模擬 AI 思考延遲
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        const target = wordData.find(w => w.word === currentModalWord);
+        
+        // 隨機挑選一句
+        const randomIndex = Math.floor(Math.random() * target.sentences.length);
+        const selectedSentence = target.sentences[randomIndex];
+        
+        content.innerHTML = `
+            <strong>📝 造句示範：</strong>
+            <p class="mt-3 text-xl text-[#00695C] font-bold p-3 bg-white rounded-lg shadow-sm border border-teal-100">
+                「${selectedSentence}」
+            </p>
+            <p class="text-sm text-purple-600 mt-2 text-right"><i class="fas fa-hand-pointer"></i> 可以再點擊按鈕換一句喔！</p>
+        `;
+        
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> 換一句';
+        btn.disabled = false;
+    }
+
+    async function getAIOrigin() {
+        const btn = document.getElementById('btn-ai-origin');
+        const box = document.getElementById('ai-content-box');
+        const content = document.getElementById('ai-content-text');
+
+        if (!currentModalWord) return;
+        disableAllModalBtns();
+        
+        box.classList.add('show');
+        document.getElementById('ai-image-box').classList.remove('show');
+        document.getElementById('ai-quiz-box').classList.remove('show');
+
+        // 顯示思考中的狀態
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 查閱中...';
+        content.innerHTML = 'AI 老師正在翻閱厚厚的成語故事書...<span class="loading-dots"></span>';
+        
+        // 模擬 AI 思考延遲
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        const target = wordData.find(w => w.word === currentModalWord);
+        content.innerHTML = target.origin;
+        btn.innerHTML = '<i class="fas fa-check"></i> 完成';
+        
+        enableAllModalBtns();
+        btn.disabled = true;
+    }
+
+    async function getAIImage() {
+        const btn = document.getElementById('btn-ai-draw');
+        const box = document.getElementById('ai-image-box');
+        
+        if (!currentModalWord) return;
+        disableAllModalBtns();
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 繪圖中...';
+        box.classList.add('show');
+        document.getElementById('img-loading').style.display = 'flex';
+        
+        // Hide others
+        document.getElementById('ai-content-box').classList.remove('show');
+        document.getElementById('ai-quiz-box').classList.remove('show');
+
+        // English prompt for better result
+        const prompt = `Cute cartoon illustration of the Chinese idiom ${currentModalWord}. Bright colors, children's book style, high quality.`;
+        
+        try {
+            const base64 = await callImagenAPI(prompt);
+            box.style.backgroundImage = `url(data:image/png;base64,${base64})`;
+            document.getElementById('img-loading').style.display = 'none';
+            btn.innerHTML = '<i class="fas fa-check"></i> 完成';
+        } catch (e) {
+             document.getElementById('img-loading').innerHTML = '<span class="text-red-500">繪圖失敗，請重試</span>';
+             btn.innerHTML = '重試';
+        }
+        
+        enableAllModalBtns();
+        if (btn.innerHTML.includes('完成')) btn.disabled = true;
+    }
+
+    async function getAIQuiz() {
+        const btn = document.getElementById('btn-ai-quiz');
+        const box = document.getElementById('ai-quiz-box');
+        
+        if (!currentModalWord) return;
+        disableAllModalBtns();
+        
+        box.classList.add('show');
+        document.getElementById('ai-content-box').classList.remove('show');
+        document.getElementById('ai-image-box').classList.remove('show');
+
+        // 顯示思考中的狀態
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 出題中...';
+        document.getElementById('quiz-question').innerHTML = 'AI 老師正在設計有趣的測驗題...<span class="loading-dots"></span>';
+        const optsContainer = document.getElementById('quiz-options');
+        optsContainer.innerHTML = ''; // 清空選項
+        
+        // 模擬 AI 思考延遲
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        const target = wordData.find(w => w.word === currentModalWord);
+        const quizData = target.quiz;
+        
+        document.getElementById('quiz-question').innerText = quizData.question;
+        
+        quizData.options.forEach((opt, idx) => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.innerText = opt;
+            div.onclick = function() {
+                // Check answer
+                const allOpts = document.querySelectorAll('.quiz-option');
+                allOpts.forEach(o => o.style.pointerEvents = 'none'); // disable clicks
+                
+                if (idx === quizData.correctIndex) {
+                    this.classList.add('correct');
+                    this.innerHTML += ' <i class="fas fa-check"></i> 正確！+50分';
+                    score += 50;
+                    document.getElementById('score-display').innerText = score;
+                } else {
+                    this.classList.add('wrong');
+                    allOpts[quizData.correctIndex].classList.add('correct');
+                }
+            };
+            optsContainer.appendChild(div);
+        });
+        
+        btn.innerHTML = '<i class="fas fa-check"></i> 完成';
+        enableAllModalBtns();
+        btn.disabled = true;
+    }
+
+    function disableAllModalBtns() {
+        document.querySelectorAll('#modal-buttons button').forEach(b => b.disabled = true);
+    }
+    
+    function enableAllModalBtns() {
+        document.querySelectorAll('#modal-buttons button').forEach(b => {
+            // Don't re-enable buttons that are already "done"
+            if (!b.innerHTML.includes('完成')) b.disabled = false;
+        });
+        
+        // 確保「換一句」按鈕永遠可以點
+        const sentenceBtn = document.getElementById('btn-ai-sentence');
+        if (sentenceBtn.innerHTML.includes('換一句')) {
+            sentenceBtn.disabled = false;
+        }
+    }
+
+    async function getAIHint() {
+        const unfoundWords = wordData.filter(w => !foundWords.includes(w.word));
+        if (unfoundWords.length === 0) return;
+
+        const target = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
+        const modal = document.getElementById('hint-modal');
+        const content = document.getElementById('hint-content');
+        
+        modal.classList.add('show');
+        content.innerHTML = `AI 老師正在想一個關於某個成語的謎題...<span class="loading-dots"></span>`;
+
+        // 加上一點視覺緩衝時間，讓玩家看清楚動畫
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const prompt = `請為成語「${target.word}」設計一個簡單有趣的謎語或提示，適合小學生猜。
+        規則：
+        1. 絕對**不能**直接提到「${target.word}」這四個字。
+        2. 提示要短一點，大約兩句話。
+        3. 最後加上一句話：「猜猜看這是哪個成語？」`;
+
+        const result = await callGeminiAPI(prompt);
+        content.innerHTML = result.replace(/\n/g, '<br>');
+    }
+
+    async function getAIStory() {
+        const btn = document.getElementById('btn-ai-story');
+        const box = document.getElementById('ai-story-box');
+        const content = document.getElementById('ai-story-text');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 創作中...';
+        box.classList.add('show');
+        content.innerHTML = 'AI 正在把所有的馬年成語編成一個精彩的冒險故事...<span class="loading-dots"></span>';
+
+        const idioms = wordData.map(w => w.word).join('、');
+        const prompt = `恭喜玩家完成了「馬年成語遊戲」。請使用這 10 個成語：${idioms}，創作一個約 200 字的短篇童話冒險故事，主角是一隻勇敢的小馬。請將用到的成語**加粗**顯示。`;
+
+        const result = await callGeminiAPI(prompt);
+        const formattedResult = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        content.innerHTML = formattedResult.replace(/\n/g, '<br>');
+        btn.innerHTML = '<i class="fas fa-check"></i> 故事完成';
+    }
+
+    function closeMeaningModal() {
+        document.getElementById('meaning-modal').classList.remove('show');
+    }
+
+    function closeHintModal() {
+        document.getElementById('hint-modal').classList.remove('show');
+    }
+
+    function updateUI() {
+        document.getElementById('score-display').innerText = score;
+        const hearts = document.querySelectorAll('.heart');
+        hearts.forEach((h, i) => {
+            if (i < lives) h.classList.remove('lost');
+            else h.classList.add('lost');
+        });
+        
+        // Disable hint button if all words found or game over
+        const btnHint = document.getElementById('btn-hint');
+        if (foundWords.length === wordData.length || lives <= 0) {
+            btnHint.style.opacity = '0.5';
+            btnHint.style.pointerEvents = 'none';
+        } else {
+            btnHint.style.opacity = '1';
+            btnHint.style.pointerEvents = 'auto';
+        }
+    }
+
+    function gameWin() {
+        document.getElementById('game-over-modal').classList.add('show');
+        document.getElementById('go-title').innerText = "🎉 恭喜發財！";
+        document.getElementById('go-msg').innerText = "太厲害了！你找出了所有馬年吉祥成語！";
+        document.getElementById('go-icon').className = "fas fa-trophy text-6xl text-yellow-400 mb-4";
+        
+        // Show AI Story Button
+        document.getElementById('btn-ai-story').classList.remove('hidden');
+    }
+
+    function gameOver() {
+        document.getElementById('game-over-modal').classList.add('show');
+        document.getElementById('go-title').innerText = "💔 遊戲結束";
+        document.getElementById('go-msg').innerText = "哎呀，愛心用光了。別氣餒，再試一次！";
+        document.getElementById('go-icon').className = "fas fa-sad-tear text-6xl text-gray-400 mb-4";
+        document.getElementById('btn-ai-story').classList.add('hidden');
+    }
+
+    function resetGame() {
+        initGame();
+    }
+
+    window.onload = initGame;
+</script>
+</body>
+</html>
