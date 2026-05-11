@@ -779,7 +779,7 @@
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3aOu9AJzVDdcmWBs9IPrnFClLD_UBnV4NgPlSW5h8PSLxAGkYUFcwnlLpaoYL4466/exec";
         
         // --- Gemini API (用於生成填空短文) ---
-        const apiKey = ""; 
+        const apiKey = "AIzaSyChYCQ4XiWf2i8FPBIJVh0IyRXO2vIodS0"; 
 
         async function callGeminiAPI(promptText) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
@@ -1641,9 +1641,33 @@
             contentBox.classList.remove('flex');
             
             selectedTouchWord = null; // 重置觸控狀態
+            
+            // 👉 處理 5-7 個語詞的挑選邏輯
+            essayGenerationCount++;
+            let targetCount = Math.floor(Math.random() * 3) + 5; // 隨機 5, 6, 或 7 個
+            targetCount = Math.min(targetCount, currentLessonData.length); // 確保不超過總題數
+            
+            let wordsToUse = [];
+            const allWords = currentLessonData.map(w => w.word);
+
+            if (essayGenerationCount === 1) {
+                // 第一次生成：優先挑選測驗答錯的語詞
+                let shuffledFailed = [...failedWords].sort(() => 0.5 - Math.random());
+                wordsToUse = shuffledFailed.slice(0, targetCount);
+                
+                // 如果錯題不夠，從其他語詞中隨機補齊
+                if (wordsToUse.length < targetCount) {
+                    let remainingWords = allWords.filter(w => !wordsToUse.includes(w)).sort(() => 0.5 - Math.random());
+                    let padCount = targetCount - wordsToUse.length;
+                    wordsToUse = wordsToUse.concat(remainingWords.slice(0, padCount));
+                }
+            } else {
+                // 第二次以後：純隨機挑選
+                wordsToUse = [...allWords].sort(() => 0.5 - Math.random()).slice(0, targetCount);
+            }
 
             // 設計給 AI 的 prompt，嚴格要求字數與標記格式
-            const wordsList = failedWords.join('、');
+            const wordsList = wordsToUse.join('、');
             const prompt = `請創作一篇約 250 到 350 字的短文，內容設定為適合國小高年級學生的日常校園生活、溫馨家庭或有趣小探險。
             請務必在文章中，自然且通順地使用以下語詞：${wordsList}。
             【重要格式規定】：
