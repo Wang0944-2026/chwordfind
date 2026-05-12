@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v1.3</title>
+    <title>國語找字遊戲 v1.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -626,7 +626,7 @@
 <body>
 
     <!-- 版權與版本號宣告 -->
-    <div class="footer-version">大榮老師製作 © 2026 | Version 1.3 (v1.3)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 1.6 (v1.6)</div>
 
     <!-- 初始載入畫面 -->
     <div id="init-loader">
@@ -802,14 +802,15 @@
         // ==========================================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3aOu9AJzVDdcmWBs9IPrnFClLD_UBnV4NgPlSW5h8PSLxAGkYUFcwnlLpaoYL4466/exec";
         
+        // ==========================================
         // --- Gemini API (用於生成填空短文) ---
-        const apiKey = "AIzaSyChYCQ4XiWf2i8FPBIJVh0IyRXO2vIodS0"; 
+        // ==========================================
+        const apiKey = "AIzaSyBM5n2BAk51UUqHZ6ZNybUl5oALVsznLwo"; 
 
         async function callGeminiAPI(promptText) {
-            // 👉 升級為最新一代超高速模型：gemini-2.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: promptText }] }] };
-            const delays = [1000, 2000, 3000]; // 縮短無謂的等待時間，避免畫面卡死
+            const delays = [1000, 2000]; // 最多重試 2 次
 
             for (let i = 0; i <= delays.length; i++) {
                 try {
@@ -818,13 +819,18 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
                     if (!response.ok) {
-                        // 攔截並回報確切錯誤碼 (403 通常是網域限制，400 是金鑰無效)
+                        // 抓取 Google 伺服器給的真實錯誤原因
+                        const errText = await response.text();
+                        console.error(`[API 錯誤詳情] HTTP ${response.status}:`, errText);
+                        
                         if (response.status === 400 || response.status === 403 || response.status === 404) {
                             throw new Error(`API 設定或權限錯誤 (HTTP ${response.status})`);
                         }
                         throw new Error(`連線錯誤`);
                     }
+                    
                     const data = await response.json();
                     return data.candidates[0].content.parts[0].text;
                 } catch (error) {
