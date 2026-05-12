@@ -1235,7 +1235,10 @@
             // 防呆：如果是文字節點則抓取父元素
             const target = e.target.nodeType === 3 ? e.target.parentNode : e.target;
             const cell = target.closest('.cell');
-            if (!cell || cell.classList.contains('found')) return;
+            
+            // 👉 修正：移除 `|| cell.classList.contains('found')`
+            // 讓已經過關的文字方塊也能成為新語詞的起點或終點 (開放共用字磚)
+            if (!cell) return;
 
             const r = parseInt(cell.dataset.r);
             const c = parseInt(cell.dataset.c);
@@ -1601,6 +1604,17 @@
                             const quizBtn = document.getElementById('btn-ai-quiz');
                             quizBtn.innerHTML = '<i class="fas fa-lock"></i> 測驗結束';
                             quizBtn.disabled = true;
+                            
+                            // 👉 檢查是否所有語詞都已經作答完畢 (觸發最後魔王關)
+                            if (Object.keys(quizStatus).length === currentLessonData.length) {
+                                document.getElementById('essay-btn-container').classList.remove('hidden');
+                                
+                                // 給學生 1.5 秒觀看答對/答錯的動畫後，自動關閉視窗並開啟短文測驗！
+                                setTimeout(() => {
+                                    closeModal();
+                                    startFillInTheBlankTest();
+                                }, 1500);
+                            }
                         };
                     }
                     optsContainer.appendChild(div);
@@ -1634,6 +1648,12 @@
             const modal = document.getElementById('fill-blank-modal');
             const loadingBox = document.getElementById('fb-loading');
             const contentBox = document.getElementById('fb-content');
+            
+            // 每次打開時重置載入畫面
+            loadingBox.innerHTML = `
+                <i class="fas fa-pen-fancy text-4xl mb-4 text-purple-400 animate-pulse"></i>
+                <p class="text-lg font-bold text-gray-600">AI 老師正在為你量身打造專屬短文<span class="loading-dots"></span></p>
+            `;
             
             modal.classList.add('show');
             loadingBox.classList.remove('hidden');
@@ -1763,9 +1783,12 @@
 
             } catch (err) {
                 console.error("AI 填空生成失敗", err);
-                // 發生錯誤就直接算過關放煙火
-                document.getElementById('fill-blank-modal').classList.remove('show');
-                showWinEffect();
+                // 發生錯誤時不再默默關閉，而是顯示錯誤按鈕，讓遊戲能夠順利結算
+                loadingBox.innerHTML = `
+                    <i class="fas fa-exclamation-triangle text-4xl mb-4 text-red-400"></i>
+                    <p class="text-lg font-bold text-red-600 mb-4">AI 連線失敗，請檢查 API 金鑰或網路</p>
+                    <button onclick="document.getElementById('fill-blank-modal').classList.remove('show'); showWinEffect();" class="btn btn-quiz">跳過測驗，直接結算</button>
+                `;
             }
         }
 
