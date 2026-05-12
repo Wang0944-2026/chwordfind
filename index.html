@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲</title>
+    <title>國語找字遊戲 v1.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -62,6 +62,18 @@
             touch-action: manipulation;
             user-select: none;
             color: var(--text-main);
+        }
+
+        /* 版權宣告 */
+        .footer-version {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            z-index: 9999;
+            pointer-events: none;
+            font-weight: bold;
         }
 
         /* ----- 大廳樣式 ----- */
@@ -198,8 +210,10 @@
             background-color: var(--cell-selected-bg);
             border-color: var(--cell-selected-border);
             color: var(--cell-selected-text);
-            transform: scale(1.05);
-            box-shadow: 0 4px 0 var(--cell-selected-border);
+            /* 強化：確保已經過關的字磚被點擊時，依然能明顯放大凸起 */
+            transform: scale(1.1) !important; 
+            box-shadow: 0 4px 0 var(--cell-selected-border) !important;
+            filter: brightness(0.95);
             z-index: 10;
         }
 
@@ -306,8 +320,8 @@
             overflow-y: auto;
             overflow-x: hidden; /* 確保橫向不會出現不必要的捲軸 */
             flex: 1;
-            padding-top: 16px;   /* 👉 預留第一排小皇冠的上方空間 */
-            padding-right: 16px; /* 👉 預留右側小皇冠的空間 */
+            padding-top: 16px;   /* 預留第一排小皇冠的上方空間 */
+            padding-right: 16px; /* 預留右側小皇冠的空間 */
             padding-left: 4px;
             padding-bottom: 10px;
             align-content: flex-start; /* 讓內容從上方開始排 */
@@ -611,6 +625,9 @@
 </head>
 <body>
 
+    <!-- 版權與版本號宣告 -->
+    <div class="footer-version">大榮老師製作 © 2026 | Version 1.1 (v1.1)</div>
+
     <!-- 初始載入畫面 -->
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -692,6 +709,13 @@
                 <div id="word-list-container" class="word-list word-list-scroll">
                     <!-- Word List JS Generated -->
                 </div>
+                
+                <!-- 短文測驗按鈕區塊 (預設隱藏) -->
+                <div id="essay-btn-container" class="mt-4 flex justify-center hidden pb-2 shrink-0 border-t-2 pt-4" style="border-color: var(--bg-base);">
+                    <button onclick="startFillInTheBlankTest()" class="btn btn-sentence text-lg px-8 py-3 w-full shadow-md" style="animation: bounceIn 0.8s;">
+                        <i class="fas fa-scroll"></i> 短文測驗
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -732,12 +756,12 @@
         </div>
     </div>
 
-    <!-- 終極填空測驗 Modal -->
+    <!-- 短文測驗 Modal -->
     <div id="fill-blank-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header-bar" style="background: var(--btn-blue)"></div>
             <i class="fas fa-book-reader text-5xl mb-3 mt-2" style="color: var(--btn-blue)"></i>
-            <h2 class="text-2xl font-bold mb-1">終極複習挑戰</h2>
+            <h2 class="text-2xl font-bold mb-1">短文測驗</h2>
             <p class="text-gray-500 mb-4 font-bold text-sm">請將下方的語詞填入文章正確的空格中<br>(可拖曳，或先點語詞再點空格)</p>
             
             <div id="fb-loading" class="w-full text-center py-10 hidden">
@@ -782,9 +806,10 @@
         const apiKey = "AIzaSyChYCQ4XiWf2i8FPBIJVh0IyRXO2vIodS0"; 
 
         async function callGeminiAPI(promptText) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            // 切換為最穩定且不限制金鑰類型的 1.5-flash 版本
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: promptText }] }] };
-            const delays = [1000, 2000, 4000, 8000, 16000];
+            const delays = [1000, 2000, 3000]; // 縮短無謂的等待時間，避免畫面卡死
 
             for (let i = 0; i <= delays.length; i++) {
                 try {
@@ -793,11 +818,19 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    if (!response.ok) throw new Error(`連線錯誤`);
+                    if (!response.ok) {
+                        // 如果是金鑰權限錯誤，不再浪費時間重試，直接拋出錯誤進入畫面攔截
+                        if (response.status === 400 || response.status === 403 || response.status === 404) {
+                            throw new Error(`API 設定或權限錯誤 (${response.status})`);
+                        }
+                        throw new Error(`連線錯誤`);
+                    }
                     const data = await response.json();
                     return data.candidates[0].content.parts[0].text;
                 } catch (error) {
-                    if (i === delays.length) throw error;
+                    if (error.message.includes('設定或權限錯誤') || i === delays.length) {
+                        throw error;
+                    }
                     await new Promise(resolve => setTimeout(resolve, delays[i]));
                 }
             }
@@ -847,10 +880,13 @@
         let lessonRecords = {}; // 記錄各單元最佳成績
         let perfectWords = []; // 記錄完美答對測驗的語詞
         
-        // --- 新增：測驗狀態追蹤 ---
+        // --- 測驗狀態追蹤 ---
         let quizStatus = {}; // 記錄每題狀態：{ '單字': 'correct' 或 'wrong' }
         let failedWords = []; // 記錄答錯的語詞
-        let selectedTouchWord = null; // 用於觸控模式的填空
+        let selectedTouchWord = null; 
+        
+        let essayGenerationCount = 0; // 短文生成次數
+        let isEndGameTriggered = false; // 確保關卡只會觸發一次結算
 
         // 30 組對比分明、冷暖交替的莫蘭迪大地色調色盤
         const earthTonePalette = [
@@ -1097,8 +1133,13 @@
             perfectWords = [];
             quizStatus = {}; // 重置測驗狀態
             failedWords = []; // 重置答錯清單
+            essayGenerationCount = 0; 
+            isEndGameTriggered = false; // 重置結算鎖
             score = 0;
             colorIndex = 0; 
+            
+            // 隱藏短文挑戰按鈕
+            document.getElementById('essay-btn-container').classList.add('hidden');
             
             let wordsToPlace = [...currentLessonData].sort(() => 0.5 - Math.random());
             wordsToPlace.forEach(item => placeWord(item.word));
@@ -1190,7 +1231,7 @@
                 if (foundWords.includes(item.word)) {
                     tag.classList.add('found');
                     let crownHtml = perfectWords.includes(item.word) ? '<i class="fas fa-crown crown-icon"></i>' : '';
-                    tag.innerHTML = `<i class="fas fa-check-circle"></i> <span>${item.word}</span> ${crownHtml}`;
+                    tag.innerHTML = `<span>${item.word}</span> ${crownHtml}`;
                     // 恢復專屬顏色 (需從紀錄的 cell 取顏色或重新推算，最簡單是直接套用行內樣式，這邊簡化處理)
                 } else {
                     tag.innerHTML = `<span>${item.word}</span>`;
@@ -1236,7 +1277,6 @@
             const target = e.target.nodeType === 3 ? e.target.parentNode : e.target;
             const cell = target.closest('.cell');
             
-            // 👉 修正：移除 `|| cell.classList.contains('found')`
             // 讓已經過關的文字方塊也能成為新語詞的起點或終點 (開放共用字磚)
             if (!cell) return;
 
@@ -1411,7 +1451,7 @@
                     tag.classList.add('found');
                     // 保留皇冠如果它已經在那裡 (理論上此時還沒出題所以沒有皇冠，但保險起見)
                     let existingCrown = tag.querySelector('.crown-icon') ? '<i class="fas fa-crown crown-icon"></i>' : '';
-                    tag.innerHTML = `<i class="fas fa-check-circle"></i> <span>${matchedWord}</span> ${existingCrown}`;
+                    tag.innerHTML = `<span>${matchedWord}</span> ${existingCrown}`;
                     tag.style.setProperty('background-color', color.bg, 'important');
                     tag.style.setProperty('border-color', color.border, 'important');
                     tag.style.setProperty('color', color.text, 'important');
@@ -1424,18 +1464,11 @@
                 
                 setTimeout(() => openModal(matchedWord), 400);
 
+                // 只做計時與計分，短文觸發改由 closeModal 統一管理
                 if (foundWords.length === currentLessonData.length) {
                     stopTimer(); // 停止計時
-                    // 儲存最佳成績
                     if (!lessonRecords[currentLessonName] || score > lessonRecords[currentLessonName].score) {
                         lessonRecords[currentLessonName] = { score: score, time: timeElapsed };
-                    }
-                    
-                    // 檢查是否有錯題，決定進入填空挑戰還是直接放煙火
-                    if (failedWords.length > 0) {
-                        setTimeout(startFillInTheBlankTest, 1200);
-                    } else {
-                        setTimeout(showWinEffect, 1000);
                     }
                 }
             } else {
@@ -1478,6 +1511,17 @@
         function closeModal() {
             document.getElementById('learning-modal').classList.remove('show');
             currentModalWord = null;
+
+            // 👉 終極觸發判斷：所有語詞都找完，且所有測驗都答完，且還沒結算過，才在關閉視窗後進入結算
+            if (foundWords.length === currentLessonData.length && Object.keys(quizStatus).length === currentLessonData.length && !isEndGameTriggered) {
+                isEndGameTriggered = true; // 鎖定，避免重複觸發
+                
+                if (failedWords.length > 0) {
+                    setTimeout(startFillInTheBlankTest, 500); // 延遲半秒開啟短文測驗，讓視覺平順
+                } else {
+                    setTimeout(showWinEffect, 500); // 全部答對，直接放煙火
+                }
+            }
         }
 
         async function showContent(type) {
@@ -1600,20 +1644,14 @@
                                 if(correctDiv) correctDiv.classList.add('correct');
                             }
                             
-                            // 👉 答題後立刻鎖定測驗按鈕
+                            // 答題後立刻鎖定測驗按鈕
                             const quizBtn = document.getElementById('btn-ai-quiz');
                             quizBtn.innerHTML = '<i class="fas fa-lock"></i> 測驗結束';
                             quizBtn.disabled = true;
                             
-                            // 👉 檢查是否所有語詞都已經作答完畢 (觸發最後魔王關)
+                            // 顯示短文測驗按鈕 (以防玩家自己想提早挑戰)
                             if (Object.keys(quizStatus).length === currentLessonData.length) {
                                 document.getElementById('essay-btn-container').classList.remove('hidden');
-                                
-                                // 給學生 1.5 秒觀看答對/答錯的動畫後，自動關閉視窗並開啟短文測驗！
-                                setTimeout(() => {
-                                    closeModal();
-                                    startFillInTheBlankTest();
-                                }, 1500);
                             }
                         };
                     }
@@ -1786,7 +1824,7 @@
                 // 發生錯誤時不再默默關閉，而是顯示錯誤按鈕，讓遊戲能夠順利結算
                 loadingBox.innerHTML = `
                     <i class="fas fa-exclamation-triangle text-4xl mb-4 text-red-400"></i>
-                    <p class="text-lg font-bold text-red-600 mb-4">AI 連線失敗，請檢查 API 金鑰或網路</p>
+                    <p class="text-lg font-bold text-red-600 mb-4">AI 連線失敗，請檢查 API 金鑰或網路環境</p>
                     <button onclick="document.getElementById('fill-blank-modal').classList.remove('show'); showWinEffect();" class="btn btn-quiz">跳過測驗，直接結算</button>
                 `;
             }
