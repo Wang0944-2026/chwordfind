@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 🟢 STREAMING_CHUNK:Configuring metadata and basic setup -->
-    <title>國語找字遊戲 v2.5</title>
+    <title>國語找字遊戲 v2.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -551,7 +551,7 @@
 
         .drag-word:active { cursor: grabbing; transform: translateY(4px); box-shadow: none; }
         .drag-word.selected-for-touch { background: var(--btn-blue); color: white; transform: translateY(2px); box-shadow: 0 2px 0 var(--btn-blue-hover); }
-        .drag-word.used { opacity: 0; pointer-events: none; display: none; } /* 完全隱藏以排版 */
+        .drag-word.used { opacity: 0; pointer-events: none; display: none; } /* 填入後完全隱藏 */
 
         #init-loader {
             position: fixed;
@@ -610,7 +610,7 @@
 <body>
 
     <!-- 🟢 STREAMING_CHUNK:HTML Structure Setup -->
-    <div class="footer-version">大榮老師製作 © 2026 | Version 2.5</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 2.6</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -725,7 +725,7 @@
         </div>
     </div>
 
-    <!-- GameOver Modal (V2.5 修正寬度與內容) -->
+    <!-- GameOver Modal -->
     <div id="game-over-modal" class="modal-overlay">
         <div class="modal-content !overflow-hidden">
             <div class="modal-header-bar" style="background: var(--cell-found-bg)"></div>
@@ -1542,13 +1542,14 @@
                 
                 if (wordsToUse.length >= 2) {
                     isCached = true;
+                    // 確保最多 7 個
                     if (wordsToUse.length > 7) wordsToUse = wordsToUse.sort(() => 0.5 - Math.random()).slice(0, 7);
                 }
             }
 
             if (!isCached) {
                 let targetCount = Math.floor(Math.random() * 3) + 5; 
-                targetCount = Math.min(targetCount, 7); 
+                targetCount = Math.min(targetCount, 7); // 強制不超過 7 個
                 targetCount = Math.min(targetCount, currentLessonData.length); 
 
                 if (allWords.length <= 5) {
@@ -1565,12 +1566,14 @@
                 }
 
                 const wordsList = wordsToUse.join('、');
+                // 🚀 AI 指令：嚴格要求每個字只能出現一次
                 const prompt = `請創作一篇大約 350 字以內的短文，內容設定為適合國小中高年級學生的日常校園生活、溫馨家庭或有趣小探險。文章結構要求最多分四個段落。
 請務必在文章中，自然且通順地使用以下語詞：${wordsList}。
 要求：
-1. 故事必須有完整結尾。
-2. 絕對不可以有標題。
-3. 只要寫出純文字故事即可，不需要加任何括號或標記符號。`;
+1. 每個指定的語詞在文章中「嚴格限制只能出現一次」，絕對不可以重複。
+2. 故事必須有完整結尾。
+3. 絕對不可以有標題。
+4. 只要寫出純文字故事即可，不需要加任何括號或標記符號。`;
 
                 try {
                     aiText = await callGeminiAPI(prompt);
@@ -1601,9 +1604,14 @@
             let processedText = aiText;
             let usedWordsInEssay = []; 
 
+            // 🚀 正則替換邏輯：先依照長度排序，再使用安全正則將「所有」出現的該詞都換成空格，避免送分
+            wordsToUse.sort((a, b) => b.length - a.length);
+
             wordsToUse.forEach(w => {
-                if (processedText.includes(w)) {
-                    processedText = processedText.replace(w, `{${w}}`);
+                // 使用負向預查 (?![^{]*}) 確保不會重複替換已經被 {} 包住的文字
+                let regex = new RegExp(w + '(?![^{]*})', 'g');
+                if (regex.test(processedText)) {
+                    processedText = processedText.replace(regex, `{${w}}`);
                     usedWordsInEssay.push(w);
                 }
             });
