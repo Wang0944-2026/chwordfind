@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v1.6</title>
+    <title>國語找字遊戲 v1.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -624,9 +624,9 @@
     </style>
 </head>
 <body>
-
     <!-- 版權與版本號宣告 -->
-    <div class="footer-version">大榮老師製作 © 2026 | Version 1.6 (v1.6)</div>
+    <!-- 👉 更新版本號為 v1.7 -->
+    <div class="footer-version">大榮老師製作 © 2026 | Version 1.7 (v1.7)</div>
 
     <!-- 初始載入畫面 -->
     <div id="init-loader">
@@ -796,45 +796,58 @@
         </div>
     </div>
 
+    <!-- 結算 Modal (取代 alert) -->
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--btn-green); padding: 40px 30px;">
+            <div class="modal-header-bar" style="background: var(--btn-green)"></div>
+            <i class="fas fa-trophy text-6xl mb-4" style="color: #F1C40F;"></i>
+            <h2 class="text-3xl font-black mb-4" style="color: var(--text-main);">🎉 恭喜完成本單元！</h2>
+            <p class="text-xl mb-6 font-bold" style="color: var(--text-light);">您獲得了 <span id="final-score-display" style="color: var(--btn-orange);" class="font-black text-3xl mx-2"></span> 分！</p>
+            <button onclick="closeGameOverModalAndReturn()" class="btn btn-quiz text-lg px-8 py-3 w-full shadow-md">返回大廳選擇關卡</button>
+        </div>
+    </div>
+
     <script>
         // ==========================================
         // ⚙️ 老師設定區：您的 Google Apps Script 網址
         // ==========================================
+        // 👇 請將這裡替換成你剛剛「重新部署」所獲得的最新 GAS 網址
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3aOu9AJzVDdcmWBs9IPrnFClLD_UBnV4NgPlSW5h8PSLxAGkYUFcwnlLpaoYL4466/exec";
         
         // ==========================================
-        // --- Gemini API (用於生成填空短文) ---
+        // --- 呼叫 GAS 中繼站生成短文 ---
         // ==========================================
-        const apiKey = "AIzaSyBM5n2BAk51UUqHZ6ZNybUl5oALVsznLwo"; 
+        // 🔒 前端再也看不到 API 金鑰了，全部由 GAS 後端處理！
 
         async function callGeminiAPI(promptText) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const payload = { contents: [{ parts: [{ text: promptText }] }] };
-            const delays = [1000, 2000]; // 最多重試 2 次
+            // 直接將請求發送給您的 GAS 網址
+            const url = GAS_API_URL; 
+            const delays = [1000, 2000, 3000]; // 最多重試 3 次
 
             for (let i = 0; i <= delays.length; i++) {
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        // 使用 text/plain 可以避開瀏覽器煩人的 CORS 跨域擋截
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ prompt: promptText })
                     });
                     
-                    if (!response.ok) {
-                        // 抓取 Google 伺服器給的真實錯誤原因
-                        const errText = await response.text();
-                        console.error(`[API 錯誤詳情] HTTP ${response.status}:`, errText);
-                        
-                        if (response.status === 400 || response.status === 403 || response.status === 404) {
-                            throw new Error(`API 設定或權限錯誤 (HTTP ${response.status})`);
-                        }
-                        throw new Error(`連線錯誤`);
-                    }
+                    if (!response.ok) throw new Error(`連線到 GAS 失敗 (HTTP ${response.status})`);
                     
                     const data = await response.json();
-                    return data.candidates[0].content.parts[0].text;
+                    
+                    // 檢查 GAS 是否回報 Gemini 發生錯誤
+                    if (data.error) {
+                        console.error("[GAS/API 錯誤詳情]:", data.error);
+                        throw new Error(`AI 生成失敗`);
+                    }
+                    
+                    // 成功拿回短文！
+                    return data.text;
                 } catch (error) {
-                    if (error.message.includes('設定或權限錯誤') || i === delays.length) {
+                    if (i === delays.length) {
+                        // 真的不行了，丟出最終錯誤讓畫面顯示警告
                         throw error;
                     }
                     await new Promise(resolve => setTimeout(resolve, delays[i]));
@@ -1917,9 +1930,20 @@
             
             animate();
             
+            // 延遲顯示自訂的結算 Modal (取代原本的 alert)
             setTimeout(() => {
-                alert(`🎉 恭喜完成本單元！\n您獲得了 ${score} 分！\n請點擊左上角返回大廳選擇其他關卡。`);
-            }, 1000);
+                showGameOverModal(score);
+            }, 1500);
+        }
+
+        function showGameOverModal(finalScore) {
+            document.getElementById('final-score-display').innerText = finalScore;
+            document.getElementById('game-over-modal').classList.add('show');
+        }
+
+        function closeGameOverModalAndReturn() {
+            document.getElementById('game-over-modal').classList.remove('show');
+            returnToLobby();
         }
 
     </script>
