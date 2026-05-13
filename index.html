@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v1.8</title>
+    <title>國語找字遊戲 v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -624,6 +624,7 @@
     </style>
 </head>
 <body>
+    <!-- 🟢 STREAMING_CHUNK:版面與頂部宣告 -->
     <!-- 版權與版本號宣告 -->
     <!-- 👉 更新版本號為 v2.0 -->
     <div class="footer-version">大榮老師製作 © 2026 | Version 2.0 (v2.0)</div>
@@ -654,6 +655,7 @@
         </div>
     </div>
 
+    <!-- 🟢 STREAMING_CHUNK:遊戲主要版面區塊 -->
     <!-- 🛑 遊戲主要畫面 🛑 -->
     <div id="game-container">
         <!-- 頂部資訊列 -->
@@ -665,7 +667,11 @@
             <h1 id="game-title" class="text-xl md:text-2xl font-bold tracking-wider m-0">單元名稱</h1>
             
             <div class="flex items-center gap-3">
-                <!-- 新增計時器 -->
+                <!-- 重玩按鈕 (預設隱藏，過關後顯示) -->
+                <button id="btn-replay" onclick="replayGame()" class="hidden flex items-center gap-2 font-bold text-lg px-4 py-1 rounded-full bg-white border-2 hover:bg-gray-50 transition cursor-pointer" style="border-color: var(--panel-border); color: #E67E22;">
+                    <i class="fas fa-redo-alt"></i> 重玩一次
+                </button>
+                <!-- 計時器 -->
                 <div class="flex items-center gap-2 font-bold text-lg px-4 py-1 rounded-full bg-white border-2" style="border-color: var(--panel-border);">
                     <i class="fas fa-clock" style="color: var(--btn-blue)"></i> 
                     <span id="time-display">00:00</span>
@@ -720,6 +726,7 @@
         </div>
     </div>
 
+    <!-- 🟢 STREAMING_CHUNK:Modals對話框區塊 -->
     <!-- 學習互動 Modal -->
     <div id="learning-modal" class="modal-overlay">
         <div class="modal-content">
@@ -760,6 +767,12 @@
     <div id="fill-blank-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header-bar" style="background: var(--btn-blue)"></div>
+            
+            <!-- 右上角關閉按鈕 -->
+            <button onclick="document.getElementById('fill-blank-modal').classList.remove('show')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500 z-10">
+                <i class="fas fa-times"></i>
+            </button>
+
             <i class="fas fa-book-reader text-5xl mb-3 mt-2" style="color: var(--btn-blue)"></i>
             <h2 class="text-2xl font-bold mb-1">短文測驗</h2>
             <p class="text-gray-500 mb-4 font-bold text-sm">請將下方的語詞填入文章正確的空格中<br>(可拖曳，或先點語詞再點空格)</p>
@@ -780,48 +793,35 @@
             </div>
         </div>
     </div>
-
-    <!-- 提示 Modal -->
-    <div id="hint-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header-bar" style="background: var(--btn-orange)"></div>
-            <i class="fas fa-lightbulb text-5xl mb-4 mt-4" style="color: var(--btn-orange)"></i>
-            <h2 class="text-2xl font-bold mb-2">小提示</h2>
-            
-            <div class="meaning-box text-center" style="border-left-color: var(--btn-orange); background: #FAF5F0;">
-                <p id="hint-content" class="font-medium text-lg">尋找中<span class="loading-dots"></span></p>
-            </div>
-
-            <button onclick="document.getElementById('hint-modal').classList.remove('show')" class="btn w-full mt-2" style="background: var(--btn-orange); box-shadow: 0 4px 0 var(--btn-orange-hover);">我知道了</button>
-        </div>
-    </div>
-
+    
     <!-- 結算 Modal (取代 alert) -->
     <div id="game-over-modal" class="modal-overlay">
-        <div class="modal-content" style="border-color: var(--btn-green); padding: 40px 30px; width: 500px; max-width: 95%; overflow-x: hidden;">
+        <div class="modal-content overflow-hidden" style="border-color: var(--btn-green); padding: 40px 30px; width: 500px; max-width: 95%;">
             <div class="modal-header-bar" style="background: var(--btn-green)"></div>
             
-            <button onclick="closeGameOverModalAndReturn()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500">
+            <!-- 右上角關閉按鈕，關閉後留在原畫面 -->
+            <button onclick="document.getElementById('game-over-modal').classList.remove('show')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500 z-10">
                 <i class="fas fa-times"></i>
             </button>
 
             <i class="fas fa-trophy text-6xl mb-4 mt-2" style="color: #F1C40F;"></i>
             <h2 class="text-3xl font-black mb-6" style="color: var(--text-main);">🎉 恭喜完成本單元！</h2>
             
-            <div class="flex flex-col gap-4 mb-4 w-full px-8">
-                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border-2 border-gray-100">
-                    <span class="text-lg font-bold text-gray-500">總得分</span>
-                    <span class="font-black text-3xl" style="color: var(--btn-orange);"><span id="final-score-display">0</span> 分</span>
+            <div class="flex flex-col gap-4 w-full bg-[#F8F6F4] p-6 rounded-2xl border-2 border-[#E2DDD6] mb-2">
+                <div class="flex justify-between items-center px-4">
+                    <span class="text-xl font-bold" style="color: var(--text-light);"><i class="fas fa-star" style="color: var(--btn-orange)"></i> 總得分</span>
+                    <span id="final-score-display" style="color: var(--btn-orange);" class="font-black text-3xl">0</span>
                 </div>
-                
-                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border-2 border-gray-100">
-                    <span class="text-lg font-bold text-gray-500">花費時間</span>
-                    <span class="font-black text-2xl text-blue-500" id="final-time-display">00:00</span>
+                <div class="w-full h-px bg-[#D4CFC9]"></div>
+                <div class="flex justify-between items-center px-4">
+                    <span class="text-xl font-bold" style="color: var(--text-light);"><i class="fas fa-clock" style="color: var(--btn-blue)"></i> 完成時間</span>
+                    <span id="final-time-display" style="color: var(--btn-blue);" class="font-black text-3xl">00:00</span>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 🟢 STREAMING_CHUNK:Javascript設定與全域變數 -->
     <script>
         // ==========================================
         // ⚙️ 老師設定區：您的 Google Apps Script 網址
@@ -956,6 +956,7 @@
             { bg: '#698486', border: '#4C6568', text: '#FFFFFF' }  // 冰川灰
         ];
 
+        // 🟢 STREAMING_CHUNK:初始化與資料處理
         // 全域：點擊網格外部取消選擇
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.cell') && !e.target.classList.contains('preview-line') && !e.target.closest('.modal-content')) {
@@ -1023,10 +1024,6 @@
                 let opt2Raw = getVal(row, ['選項2', '選項二']);
                 let opt3Raw = getVal(row, ['選項3', '選項三']);
                 
-                let opt1 = opt1Raw ? String(opt1Raw).trim() : "";
-                let opt2 = opt2Raw ? String(opt2Raw).trim() : "";
-                let opt3 = opt3Raw ? String(opt3Raw).trim() : "";
-                
                 // 🎯 終極解法：前端完全不比對，直接接收後端算好的絕對答案索引！
                 let correctIdx = row['computedCorrectIndex'] !== undefined ? parseInt(row['computedCorrectIndex']) : 0;
                 
@@ -1035,6 +1032,10 @@
                 
                 let questionRaw = getVal(row, ['測驗題目', '題目', '問題']);
                 let question = questionRaw ? String(questionRaw).trim() : `請問關於「${word}」的解釋何者最接近？`;
+
+                let opt1 = opt1Raw ? String(opt1Raw).trim() : "";
+                let opt2 = opt2Raw ? String(opt2Raw).trim() : "";
+                let opt3 = opt3Raw ? String(opt3Raw).trim() : "";
 
                 // 如果選項完全空白，給予防呆預設值，避免畫面破圖
                 if (!opt1) opt1 = (correctIdx === 0 ? clue : "錯誤的選項 A");
@@ -1057,6 +1058,7 @@
             return processed;
         }
 
+        // 🟢 STREAMING_CHUNK:大廳與遊戲狀態管理
         // --- 大廳選單邏輯 ---
         function renderLobby() {
             const btnContainer = document.getElementById('lesson-buttons');
@@ -1114,6 +1116,11 @@
             document.getElementById('game-container').style.display = 'flex'; 
             initGame();
         }
+        
+        function replayGame() {
+            // 從上方重玩按鈕觸發
+            initGame();
+        }
 
         // 計時器邏輯
         function startTimer() {
@@ -1150,6 +1157,7 @@
 
         window.addEventListener('resize', syncPanelHeight);
 
+        // 🟢 STREAMING_CHUNK:遊戲核心引擎 (網格建立與配置)
         // --- 遊戲核心引擎 ---
         function initGame() {
             const maxWordLen = Math.max(...currentLessonData.map(w => w.word.length));
@@ -1172,8 +1180,13 @@
             score = 0;
             colorIndex = 0; 
             
-            // 隱藏短文挑戰按鈕
+            // 隱藏重玩按鈕與短文按鈕
+            document.getElementById('btn-replay').classList.add('hidden');
             document.getElementById('essay-btn-container').classList.add('hidden');
+            
+            // 清除煙火
+            const canvas = document.getElementById('fireworks');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             
             let wordsToPlace = [...currentLessonData].sort(() => 0.5 - Math.random());
             wordsToPlace.forEach(item => placeWord(item.word));
@@ -1250,6 +1263,7 @@
             }
         }
 
+        // 🟢 STREAMING_CHUNK:遊戲列表與連線互動邏輯
         function renderWordList() {
             const list = document.getElementById('word-list-container');
             list.innerHTML = '';
@@ -1266,7 +1280,6 @@
                     tag.classList.add('found');
                     let crownHtml = perfectWords.includes(item.word) ? '<i class="fas fa-crown crown-icon"></i>' : '';
                     tag.innerHTML = `<span>${item.word}</span> ${crownHtml}`;
-                    // 恢復專屬顏色 (需從紀錄的 cell 取顏色或重新推算，最簡單是直接套用行內樣式，這邊簡化處理)
                 } else {
                     tag.innerHTML = `<span>${item.word}</span>`;
                 }
@@ -1302,8 +1315,6 @@
             newBoard.addEventListener('touchmove', (e) => {
                 if (startCell) e.preventDefault();
             }, {passive: false});
-            
-            // 註：網格外部點擊的監聽器已移至全域頂層，避免重疊 Bug
         }
 
         function handleBoardClick(e) {
@@ -1428,6 +1439,7 @@
             clearPathPreview();
         }
 
+        // 🟢 STREAMING_CHUNK:連線驗證與過關判定
         function checkConnection(r1, c1, r2, c2) {
             const dr = Math.sign(r2 - r1);
             const dc = Math.sign(c2 - c1);
@@ -1498,7 +1510,7 @@
                 
                 setTimeout(() => openModal(matchedWord), 400);
 
-                // 只做計時與計分，短文觸發改由 closeModal 統一管理
+                // 只做計分
                 if (foundWords.length === currentLessonData.length) {
                     stopTimer(); // 停止計時
                     if (!lessonRecords[currentLessonName] || score > lessonRecords[currentLessonName].score) {
@@ -1542,19 +1554,22 @@
             }
         }
 
+        // 🟢 STREAMING_CHUNK:關閉對話框與觸發結算
         function closeModal() {
             document.getElementById('learning-modal').classList.remove('show');
             currentModalWord = null;
 
-            // 👉 終極觸發判斷：所有語詞都找完，且所有測驗都答完，且還沒結算過，才在關閉視窗後進入結算
+            // 👉 新的觸發邏輯：只要找字完成且測驗作答完畢，一律先放煙火顯示結算分數視窗。
+            // (不再自動進入短文測驗)
             if (foundWords.length === currentLessonData.length && Object.keys(quizStatus).length === currentLessonData.length && !isEndGameTriggered) {
                 isEndGameTriggered = true; // 鎖定，避免重複觸發
                 
-                if (failedWords.length > 0) {
-                    setTimeout(startFillInTheBlankTest, 500); // 延遲半秒開啟短文測驗，讓視覺平順
-                } else {
-                    setTimeout(showWinEffect, 500); // 全部答對，直接放煙火
-                }
+                // 顯示短文按鈕與重玩按鈕
+                document.getElementById('essay-btn-container').classList.remove('hidden');
+                document.getElementById('btn-replay').classList.remove('hidden');
+
+                // 延遲半秒後放煙火並顯示結算 Modal
+                setTimeout(showWinEffect, 500); 
             }
         }
 
@@ -1683,10 +1698,7 @@
                             quizBtn.innerHTML = '<i class="fas fa-lock"></i> 測驗結束';
                             quizBtn.disabled = true;
                             
-                            // 顯示短文測驗按鈕 (以防玩家自己想提早挑戰)
-                            if (Object.keys(quizStatus).length === currentLessonData.length) {
-                                document.getElementById('essay-btn-container').classList.remove('hidden');
-                            }
+                            // (移除這裡的自動顯示按鈕邏輯，統一放到 closeModal 去處理，確保流程乾淨)
                         };
                     }
                     optsContainer.appendChild(div);
@@ -1715,6 +1727,7 @@
             }
         }
 
+        // 🟢 STREAMING_CHUNK:AI短文測驗挑戰與防呆邏輯
         // --- AI 填空測驗挑戰 ---
         async function startFillInTheBlankTest() {
             const modal = document.getElementById('fill-blank-modal');
@@ -1734,9 +1747,11 @@
             
             selectedTouchWord = null; // 重置觸控狀態
             
-            // 👉 處理 5-7 個語詞的挑選邏輯
+            // 👉 處理語詞的挑選邏輯：強制保障目標區語詞數量
             essayGenerationCount++;
-            let targetCount = Math.floor(Math.random() * 3) + 5; // 隨機 5, 6, 或 7 個
+            
+            // 如果總詞庫少於 5 個，就強制全上。否則隨機抓 5-7 個
+            let targetCount = currentLessonData.length < 5 ? currentLessonData.length : (Math.floor(Math.random() * 3) + 5);
             targetCount = Math.min(targetCount, currentLessonData.length); // 確保不超過總題數
             
             let wordsToUse = [];
@@ -1758,18 +1773,41 @@
                 wordsToUse = [...allWords].sort(() => 0.5 - Math.random()).slice(0, targetCount);
             }
 
-            // 設計給 AI 的 prompt，嚴格要求字數與標記格式
+            // 👉 【重要修改】強化 Prompt：強烈要求文章結尾完整，不要斷尾。
             const wordsList = wordsToUse.join('、');
-            const prompt = `請創作一篇約 250 到 350 字的短文，內容設定為適合國小高年級學生的日常校園生活、溫馨家庭或有趣小探險。
-            請務必在文章中，自然且通順地使用以下語詞：${wordsList}。
-            【重要格式規定】：
-            請將上述指定的語詞，用大括號標記起來。例如：這是一件{冥冥之中}注定的事。
-            除了這些指定的語詞外，文章的任何其他地方絕對不能使用大括號。`;
+            const prompt = `你是優秀的兒童故事作家。請創作一篇約 250 到 350 字的短文，主題設定為適合國小高年級學生的日常校園生活、溫馨家庭或有趣小探險。
+            
+【極度重要指令】：
+1. 請務必在文章中，自然且通順地使用以下語詞：${wordsList}。
+2. 文章「必須有完整的結尾」，絕對不可以斷句或突然結束。請確保故事是完整講完的。
+3. 直接輸出故事純文字即可，絕對不要加上任何標記、星號或大括號。`;
 
             try {
                 let aiText = await callGeminiAPI(prompt);
+                console.log("AI 原始回傳文本：", aiText); 
                 
-                // 解析 AI 回傳的文字，建立填空區
+                // --- 🛡️ 終極防呆機制：前端自己動手挖空，並容忍 AI 漏字 ---
+                let actuallyUsedWords = [];
+                
+                // 1. 先清理 AI 萬一還是手癢自己加上的標點符號 (例如 {語詞}、[語詞]、**語詞**)
+                wordsToUse.forEach(w => {
+                    aiText = aiText.replace(`{${w}}`, w).replace(`[${w}]`, w).replace(`「${w}」`, w).replace(`**${w}**`, w);
+                });
+
+                // 2. 掃描文章，把「確實有出現在文章裡」的語詞，替換成 {語詞} 方便後續切分
+                wordsToUse.forEach(w => {
+                    if (aiText.includes(w)) {
+                        aiText = aiText.replace(w, `{${w}}`); // 只替換第一次出現的作為空格
+                        actuallyUsedWords.push(w);
+                    }
+                });
+
+                // 3. 【防呆】如果 AI 超級偷懶，一篇裡面一個目標詞都沒用到，視為生成失敗丟出錯誤
+                if (actuallyUsedWords.length === 0) {
+                    throw new Error("AI 生成文章失敗，內容完全沒有包含任何目標語詞，或文章被意外截斷。");
+                }
+                
+                // 解析 AI 回傳的文字 (此時文章內已經有我們剛剛手動塞入的 {} 了)，建立填空區
                 const articleContainer = document.getElementById('article-container');
                 const bankContainer = document.getElementById('word-bank-container');
                 articleContainer.innerHTML = '';
@@ -1787,7 +1825,6 @@
                     } else {
                         // 目標語詞部分
                         let cleanWord = part.trim();
-                        // 防呆：確保提取出的詞確實是我們要求的，或至少有長度
                         if (cleanWord) {
                             dropzoneHtml += `<span class="dropzone" data-answer="${cleanWord}"></span>`;
                             wordsToBank.push(cleanWord);
@@ -1797,7 +1834,7 @@
 
                 articleContainer.innerHTML = dropzoneHtml;
 
-                // 打亂備選區的語詞
+                // 打亂備選區的語詞 (只把真的有出現的 actuallyUsedWords 放進去考)
                 wordsToBank.sort(() => Math.random() - 0.5);
                 wordsToBank.forEach((w, i) => {
                     const wDiv = document.createElement('div');
@@ -1855,16 +1892,16 @@
 
             } catch (err) {
                 console.error("AI 填空生成失敗", err);
-                // 發生錯誤時不再默默關閉，而是顯示錯誤按鈕，讓遊戲能夠順利結算
+                // 發生錯誤時不再默默關閉，而是顯示錯誤按鈕
                 loadingBox.innerHTML = `
                     <i class="fas fa-exclamation-triangle text-4xl mb-4 text-red-400"></i>
-                    <p class="text-lg font-bold text-red-600 mb-2">AI 連線失敗，請檢查 API 金鑰或網路環境</p>
-                    <p class="text-sm text-gray-500 mb-4">(若在電腦本機測試，請先解除網址限制或上傳至 GitHub 測試)</p>
-                    <button onclick="document.getElementById('fill-blank-modal').classList.remove('show'); showWinEffect();" class="btn btn-quiz">跳過測驗，直接結算</button>
+                    <p class="text-lg font-bold text-red-600 mb-2">AI 連線或生成失敗</p>
+                    <p class="text-sm text-gray-500 mb-4">可能是網路不穩或 AI 回應不完整，請關閉視窗後再次點擊「短文測驗」重試。</p>
                 `;
             }
         }
 
+        // 🟢 STREAMING_CHUNK:答案驗證與最終煙火特效
         function checkDropAnswer(zone, word, sourceEl) {
             const correctAnswer = zone.dataset.answer;
             if (word === correctAnswer) {
@@ -1880,7 +1917,7 @@
                 if (totalZones === correctZones) {
                     setTimeout(() => {
                         document.getElementById('fill-blank-modal').classList.remove('show');
-                        showWinEffect();
+                        showWinEffect(); // 再次放煙火慶祝短文完成
                     }, 1000);
                 }
             } else {
@@ -1945,21 +1982,21 @@
             
             animate();
             
-            // 延遲顯示自訂的結算 Modal (取代原本的 alert)
-            setTimeout(() => {
-                showGameOverModal(score, timeElapsed);
-            }, 1500);
+            // 如果是從主遊戲過關觸發的，就顯示結算 Modal
+            // 如果是短文測驗過關觸發的，已經看過結算 Modal 了，所以只要放煙火就好
+            if (isEndGameTriggered && foundWords.length === currentLessonData.length && !document.getElementById('btn-replay').classList.contains('hidden')) {
+                // 由於 showWinEffect 會在完成主遊戲跟完成短文時呼叫，
+                // 我們只在第一次通關時跳出分數視窗。這可以透過檢查 replay 按鈕剛好顯示來判斷。
+                 setTimeout(() => {
+                    showGameOverModal(score, timeElapsed);
+                }, 1500);
+            }
         }
 
         function showGameOverModal(finalScore, finalTime) {
             document.getElementById('final-score-display').innerText = finalScore;
             document.getElementById('final-time-display').innerText = formatTime(finalTime);
             document.getElementById('game-over-modal').classList.add('show');
-        }
-
-        function closeGameOverModalAndReturn() {
-            document.getElementById('game-over-modal').classList.remove('show');
-            returnToLobby();
         }
 
     </script>
