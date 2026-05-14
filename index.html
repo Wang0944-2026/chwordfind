@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v2.7</title>
+    <title>國語找字遊戲 v2.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -125,20 +125,23 @@
             .words-col { position: relative !important; top: 0 !important; width: 100% !important; margin-top: 15px; }
         }
         
-        .article-col { flex: 2; overflow-y: auto; max-height: 70vh; padding-right: 15px; }
+        .article-col { flex: 2; overflow-y: auto; max-height: 70vh; padding-right: 15px; scroll-behavior: smooth; }
         .words-col { flex: 1; position: sticky; top: 0; background: var(--bg-base); padding: 20px; border-radius: 20px; border: 4px solid var(--grid-border); display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         
         .article-col::-webkit-scrollbar { width: 8px; }
         .article-col::-webkit-scrollbar-track { background: transparent; }
         .article-col::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
 
-        .article-box { background: white; padding: 25px; border-radius: 20px; font-size: 1.2rem; line-height: 2.2; color: var(--text-main); border: 2px dashed var(--panel-border); margin-bottom: 20px; width: 100%; }
+        .article-box { background: white; padding: 25px; border-radius: 20px; font-size: 1.2rem; line-height: 2.2; color: var(--text-main); border: 2px dashed var(--panel-border); margin-bottom: 20px; width: 100%; transition: all 0.3s; }
         
-        .dropzone { display: inline-block; min-width: 80px; height: 38px; margin: 0 6px; border-bottom: 3px solid var(--btn-blue); background: #EDF1F4; vertical-align: middle; text-align: center; line-height: 38px; border-radius: 8px 8px 0 0; color: var(--btn-blue); font-weight: bold; transition: all 0.2s; cursor: pointer; padding: 0 10px; }
+        .dropzone { display: inline-block; min-width: 80px; height: 38px; margin: 0 6px; border-bottom: 3px solid var(--btn-blue); background: #EDF1F4; vertical-align: middle; text-align: center; line-height: 38px; border-radius: 8px 8px 0 0; color: var(--btn-blue); font-weight: bold; transition: all 0.3s; cursor: pointer; padding: 0 10px; position: relative; }
         .dropzone.active-target { background: #D5E1E8; border-bottom-color: var(--btn-orange); }
-        .dropzone.correct { background: var(--cell-found-bg); border-bottom-color: var(--cell-found-border); color: white; pointer-events: none; }
+        .dropzone.correct { background: var(--cell-found-bg); border-bottom-color: var(--cell-found-border); color: white; pointer-events: none; transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .dropzone.wrong { background: #FCE8E8; border-bottom-color: #E74C3C; color: #C0392B; animation: shake 0.4s; }
         .dropzone.filled { background: var(--btn-blue); color: white; border-bottom-color: var(--btn-blue-hover); }
+        .dropzone.checking { animation: pulseCheck 0.5s infinite; border-bottom-color: var(--btn-orange); background: #FFF3E0; color: var(--text-main); }
+        
+        .coin-popup { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); color: #F1C40F; font-weight: 900; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none; z-index: 50; animation: floatUp 0.8s forwards ease-out; opacity: 0; }
 
         .word-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; width: 100%; }
         .drag-word { background: var(--panel-bg); border: 2px solid var(--btn-blue); color: var(--btn-blue); padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: grab; user-select: none; transition: all 0.2s; box-shadow: 0 4px 0 var(--btn-blue); }
@@ -154,11 +157,13 @@
         @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes pulseCheck { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes floatUp { 0% { transform: translate(-50%, 0) scale(0.8); opacity: 1; } 100% { transform: translate(-50%, -40px) scale(1.2); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 2.7 (v2.7)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 2.8 (v2.8)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -297,6 +302,8 @@
                     <h2 class="text-2xl font-bold text-gray-700">短文測驗</h2>
                 </div>
                 <div id="article-container" class="article-box"></div>
+                <div id="retry-msg" class="hidden text-center text-red-500 font-bold mt-4 animate-bounce"><i class="fas fa-exclamation-circle"></i> 哎呀，有幾個填錯了，請再試一次！</div>
+                <div id="all-correct-msg" class="hidden text-center text-green-600 font-black text-2xl mt-4" style="animation: bounceIn 0.8s;"><i class="fas fa-check-double"></i> 太棒了！短文測驗全對！</div>
             </div>
             
             <div id="fb-words-col" class="words-col hidden">
@@ -309,7 +316,7 @@
                 
                 <div class="mt-4 pt-4 border-t-2 border-gray-200">
                     <button id="check-ans-btn" onclick="checkAllAnswers()" class="btn w-full hidden" style="background: var(--btn-green); box-shadow: 0 4px 0 var(--btn-green-hover); font-size: 1.1rem; padding: 12px;">
-                        <i class="fas fa-check-circle"></i> 核對答案
+                        <i class="fas fa-tasks"></i> 批改答案
                     </button>
                 </div>
             </div>
@@ -817,6 +824,9 @@
             const colArticle = document.getElementById('fb-article-col');
             const colWords = document.getElementById('fb-words-col');
             
+            document.getElementById('retry-msg').classList.add('hidden');
+            document.getElementById('all-correct-msg').classList.add('hidden');
+            
             loadingBox.innerHTML = `<i class="fas fa-pen-fancy text-5xl mb-4 text-purple-400 animate-pulse"></i><p class="text-xl font-bold text-gray-600">正在準備專屬短文測驗<span class="loading-dots"></span></p><p class="text-sm text-gray-400 mt-2">尋找快取文章或呼叫 AI 中</p>`;
             
             modal.classList.add('show');
@@ -827,17 +837,14 @@
             selectedTouchWord = null; 
             document.getElementById('check-ans-btn').classList.add('hidden');
 
-            let targetCount = Math.min(7, currentLessonData.length);
             let allWords = currentLessonData.map(w => w.word);
             let cachedList = cachedStories[currentLessonName] || [];
             let aiText = "";
 
             if (cachedList.length >= 10) {
-                // 快取已滿 10 篇，直接隨機抽
                 aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
-                await new Promise(resolve => setTimeout(resolve, 800)); // 假裝思考一下
+                await new Promise(resolve => setTimeout(resolve, 800)); 
             } else {
-                // 快取不足 10 篇，呼叫 API，後端會自動補檔
                 try {
                     let promptWords = allWords.join('、');
                     const prompt = `請創作一篇大約 250 到 350 字的短文，最多 4 段，適合國小中高年級學生閱讀，主題可以是校園生活、溫馨家庭或有趣探險。
@@ -847,18 +854,15 @@
 
                     aiText = await callGeminiAPI(prompt, currentLessonName);
 
-                    // 同步寫入前端快取，讓下一次可以立刻用
                     if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
                     cachedStories[currentLessonName].push(aiText);
 
                 } catch (err) {
                     console.warn("API 生成失敗:", err);
                     if (cachedList.length > 0) {
-                        // API 失敗但只要有快取，就拿出來頂替
                         aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
                         console.log("使用備用快取文章成功");
                     } else {
-                        // 真的什麼都沒有才報錯
                         let errTitle = "網路不穩或生成失敗";
                         let errDesc = "請關閉視窗後重試。";
                         if (String(err).includes("quota") || String(err).includes("exceeded")) {
@@ -879,7 +883,6 @@
             let wordsToBank = [];
             let sortedWords = [...allWords].sort((a,b) => b.length - a.length);
 
-            // 前端強制挖空 (最多挖 7 個不同的詞)
             let matchCount = 0;
             sortedWords.forEach(w => {
                 if (matchCount >= 7) return; 
@@ -913,11 +916,11 @@
                 zone.addEventListener('dragover', e => { e.preventDefault(); if (!zone.classList.contains('correct')) zone.classList.add('active-target'); });
                 zone.addEventListener('dragleave', () => zone.classList.remove('active-target'));
                 zone.addEventListener('drop', e => {
-                    e.preventDefault(); zone.classList.remove('active-target'); if (zone.classList.contains('correct')) return;
+                    e.preventDefault(); zone.classList.remove('active-target'); if (zone.classList.contains('correct') || zone.classList.contains('checking')) return;
                     handleFillBlank(zone, e.dataTransfer.getData('text/plain'), document.getElementById(e.dataTransfer.getData('source-id')));
                 });
                 zone.addEventListener('click', () => {
-                    if (zone.classList.contains('correct')) return;
+                    if (zone.classList.contains('correct') || zone.classList.contains('checking')) return;
                     if (zone.classList.contains('filled')) {
                         let prevWord = zone.innerText; zone.innerText = ''; zone.classList.remove('filled', 'wrong');
                         let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === prevWord);
@@ -935,6 +938,7 @@
         }
 
         function handleFillBlank(zone, word, sourceEl) {
+            document.getElementById('retry-msg').classList.add('hidden');
             if (zone.classList.contains('filled')) {
                 let prevEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
                 if (prevEl) prevEl.classList.remove('used');
@@ -951,12 +955,49 @@
             else document.getElementById('check-ans-btn').classList.add('hidden');
         }
 
-        function checkAllAnswers() {
+        async function checkAllAnswers() {
+            const zones = document.querySelectorAll('.dropzone');
+            const checkBtn = document.getElementById('check-ans-btn');
+            const retryMsg = document.getElementById('retry-msg');
+            const allCorrectMsg = document.getElementById('all-correct-msg');
+            
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 批改中...';
+            retryMsg.classList.add('hidden');
+            
             let allCorrect = true;
-            document.querySelectorAll('.dropzone').forEach(zone => {
-                if (zone.innerText === zone.dataset.answer) { zone.classList.remove('filled', 'wrong'); zone.classList.add('correct'); } 
-                else {
-                    allCorrect = false; zone.classList.add('wrong');
+            let hasWrong = false;
+
+            for (let i = 0; i < zones.length; i++) {
+                const zone = zones[i];
+                if (zone.classList.contains('correct')) continue; 
+
+                zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                zone.classList.add('checking');
+                
+                await new Promise(r => setTimeout(r, 600)); 
+                
+                zone.classList.remove('checking');
+
+                if (zone.innerText === zone.dataset.answer) {
+                    zone.classList.remove('filled', 'wrong'); 
+                    zone.classList.add('correct');
+                    
+                    const popup = document.createElement('div');
+                    popup.className = 'coin-popup';
+                    popup.innerHTML = '+20 <i class="fas fa-coins text-yellow-500"></i>';
+                    zone.appendChild(popup);
+                    
+                    score += 20;
+                    document.getElementById('score-display').innerText = score;
+                    
+                    setTimeout(() => popup.remove(), 1000);
+                    
+                } else {
+                    allCorrect = false;
+                    hasWrong = true;
+                    zone.classList.add('wrong');
+                    
                     setTimeout(() => {
                         if (!zone.classList.contains('correct')) {
                             let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
@@ -966,11 +1007,21 @@
                         }
                     }, 800);
                 }
-            });
+                
+                await new Promise(r => setTimeout(r, 200)); 
+            }
 
             if (allCorrect) {
-                document.getElementById('check-ans-btn').classList.add('hidden');
-                setTimeout(() => { document.getElementById('fill-blank-modal').classList.remove('show'); showWinEffect(); }, 800);
+                checkBtn.classList.add('hidden');
+                allCorrectMsg.classList.remove('hidden');
+                setTimeout(() => { showWinEffect(); }, 500);
+            } else {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = '<i class="fas fa-tasks"></i> 批改答案';
+                checkBtn.classList.add('hidden'); 
+                if (hasWrong) {
+                    retryMsg.classList.remove('hidden');
+                }
             }
         }
 
