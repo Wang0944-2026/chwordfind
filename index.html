@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v2.8</title>
+    <title>國語找字遊戲 v2.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -53,9 +53,7 @@
             color: var(--text-main);
         }
 
-        .footer-version {
-            position: fixed; bottom: 10px; right: 15px; font-size: 0.85rem; color: var(--text-light); z-index: 9999; pointer-events: none; font-weight: bold;
-        }
+        .footer-version { position: fixed; bottom: 10px; right: 15px; font-size: 0.85rem; color: var(--text-light); z-index: 9999; pointer-events: none; font-weight: bold; }
 
         #lobby-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .lobby-panel { background: var(--panel-bg); padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(105, 101, 97, 0.08); max-width: 800px; width: 100%; text-align: center; border-top: 8px solid var(--grid-border); }
@@ -116,6 +114,7 @@
         .btn-quiz { background: var(--btn-green); box-shadow: 0 4px 0 #9DB099; }
         .btn-quiz:hover { background: var(--btn-green-hover); }
 
+        /* 雙欄 Modal 樣式 */
         #fill-blank-modal .modal-content {
             width: 1000px; max-width: 95%; padding: 40px 30px; background: #FAFAFA;
             flex-direction: row; align-items: stretch; gap: 20px; text-align: left; overflow: hidden;
@@ -163,12 +162,12 @@
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 2.8 (v2.8)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 2.9 (v2.9)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
         <h2 class="text-2xl font-bold">正在準備教材...</h2>
-        <p class="mt-2 opacity-70" id="loader-msg">讀取雲端題庫中</p>
+        <p class="mt-2 opacity-70" id="loader-msg">讀取雲端題庫與快取中</p>
     </div>
 
     <canvas id="fireworks"></canvas>
@@ -284,7 +283,7 @@
         </div>
     </div>
 
-    <!-- 短文測驗 Modal (雙欄) -->
+    <!-- 短文測驗 Modal -->
     <div id="fill-blank-modal" class="modal-overlay">
         <div class="modal-content relative flex-col md:flex-row">
             <div class="modal-header-bar" style="background: var(--btn-blue); z-index: 10;"></div>
@@ -293,7 +292,7 @@
             <div id="fb-loading" class="w-full text-center py-10 flex flex-col items-center justify-center min-h-[300px]">
                 <i class="fas fa-pen-fancy text-5xl mb-4 text-purple-400 animate-pulse"></i>
                 <p class="text-xl font-bold text-gray-600">正在準備專屬短文測驗<span class="loading-dots"></span></p>
-                <p class="text-sm text-gray-400 mt-2">請稍候...</p>
+                <p class="text-sm text-gray-400 mt-2">尋找快取文章或呼叫 AI 中</p>
             </div>
 
             <div id="fb-article-col" class="article-col hidden">
@@ -324,6 +323,7 @@
     </div>
 
     <script>
+        // 👉 記得替換成你新部署的 GAS API 網址！
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3aOu9AJzVDdcmWBs9IPrnFClLD_UBnV4NgPlSW5h8PSLxAGkYUFcwnlLpaoYL4466/exec";
         
         let allWordData = []; 
@@ -810,8 +810,13 @@
             else { btnQuiz2.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz2.disabled = false; }
         }
 
-        async function callGeminiAPI(promptText, unitName) {
-            const response = await fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ prompt: promptText, unitName: unitName }) });
+        // 🎯 呼叫後端 API，只傳遞語詞清單，由後端使用英文模板生成
+        async function callGeminiAPI(allWordsStr, unitName) {
+            const response = await fetch(GAS_API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                body: JSON.stringify({ allWordsStr: allWordsStr, unitName: unitName }) 
+            });
             if (!response.ok) throw new Error(`連線失敗 HTTP ${response.status}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error);
@@ -841,33 +846,32 @@
             let cachedList = cachedStories[currentLessonName] || [];
             let aiText = "";
 
+            // 🌟 容錯與快取檢查邏輯 🌟
             if (cachedList.length >= 10) {
+                // 如果 K 到 T 欄已經滿 10 篇，直接無腦抽一篇，完全不消耗 API
                 aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
                 await new Promise(resolve => setTimeout(resolve, 800)); 
             } else {
+                // 不滿 10 篇，呼叫 API 幫忙寫，並讓後端寫入試算表
                 try {
-                    let promptWords = allWords.join('、');
-                    const prompt = `請創作一篇大約 250 到 350 字的短文，最多 4 段，適合國小中高年級學生閱讀，主題可以是校園生活、溫馨家庭或有趣探險。
-請從以下語詞中「隨機挑選 5 到 7 個」並自然地融入文章中：${promptWords}。
-(如果該列表少於5個詞，則必須全部使用)。
-【嚴格規定】：每個挑選的語詞在文章中「嚴格限制只能出現一次」，絕對不可以重複。只要寫出純文字文章即可，不需要任何標籤或大括號。`;
-
-                    aiText = await callGeminiAPI(prompt, currentLessonName);
+                    let allWordsStr = allWords.join(', ');
+                    aiText = await callGeminiAPI(allWordsStr, currentLessonName);
 
                     if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
-                    cachedStories[currentLessonName].push(aiText);
+                    cachedStories[currentLessonName].push(aiText); // 寫入前端暫存
 
                 } catch (err) {
-                    console.warn("API 生成失敗:", err);
+                    console.warn("API 生成失敗，將嘗試使用現有快取:", err);
+                    // 🚨 Fallback：就算 API 壞了，只要快取裡有大於 0 篇文章，照樣可以抽出來玩！
                     if (cachedList.length > 0) {
                         aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
                         console.log("使用備用快取文章成功");
                     } else {
                         let errTitle = "網路不穩或生成失敗";
-                        let errDesc = "請關閉視窗後重試。";
+                        let errDesc = "目前沒有足夠的快取文章，請稍候重試。";
                         if (String(err).includes("quota") || String(err).includes("exceeded")) {
                             errTitle = "AI 老師太忙碌啦！";
-                            errDesc = "免費額度已達每分鐘上限，請等待約 1 分鐘後再重試。<br><span style='color:#999; font-size:0.85rem;'>(若在課堂給全班使用，建議老師至 AI Studio 解除限制)</span>";
+                            errDesc = "免費額度已達上限，建議老師先預先生成快取文章。";
                         }
                         loadingBox.innerHTML = `<i class="fas fa-exclamation-triangle text-5xl mb-6 text-red-400"></i><p class="text-xl font-bold text-red-600 mb-2">${errTitle}</p><p class="text-sm text-gray-500">${errDesc}</p>`;
                         return; 
