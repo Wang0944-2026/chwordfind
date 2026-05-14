@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v2.9</title>
+    <title>國語找字遊戲 v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -114,7 +114,6 @@
         .btn-quiz { background: var(--btn-green); box-shadow: 0 4px 0 #9DB099; }
         .btn-quiz:hover { background: var(--btn-green-hover); }
 
-        /* 雙欄 Modal 樣式 */
         #fill-blank-modal .modal-content {
             width: 1000px; max-width: 95%; padding: 40px 30px; background: #FAFAFA;
             flex-direction: row; align-items: stretch; gap: 20px; text-align: left; overflow: hidden;
@@ -162,7 +161,7 @@
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 2.9 (v2.9)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 3.0 (v3.0)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -352,12 +351,38 @@
         let selectedTouchWord = null; 
         let isEndGameTriggered = false; 
 
+        // 👉 將30色莫蘭迪色盤「強制交錯」排列，確保相鄰色系對比強烈，絕不撞色
         const earthTonePalette = [
-            { bg: '#C28D75', border: '#A6725B', text: '#FFFFFF' }, { bg: '#7D9085', border: '#5C7064', text: '#FFFFFF' },
-            { bg: '#A67B8A', border: '#8A5D6D', text: '#FFFFFF' }, { bg: '#6B7A8C', border: '#4E5C6E', text: '#FFFFFF' },
-            { bg: '#D4A373', border: '#BC8A59', text: '#FFFFFF' }, { bg: '#918476', border: '#736557', text: '#FFFFFF' },
-            { bg: '#86A397', border: '#658277', text: '#FFFFFF' }, { bg: '#B58C73', border: '#966E56', text: '#FFFFFF' },
-            { bg: '#787586', border: '#5A5768', text: '#FFFFFF' }, { bg: '#8EA178', border: '#6E8159', text: '#FFFFFF' }
+            { bg: '#C28D75', border: '#A6725B', text: '#FFFFFF' }, // 磚紅 (Warm)
+            { bg: '#7D9085', border: '#5C7064', text: '#FFFFFF' }, // 灰綠 (Green)
+            { bg: '#6B7A8C', border: '#4E5C6E', text: '#FFFFFF' }, // 灰藍 (Blue)
+            { bg: '#D4A373', border: '#BC8A59', text: '#FFFFFF' }, // 焦糖 (Yellow)
+            { bg: '#A67B8A', border: '#8A5D6D', text: '#FFFFFF' }, // 藕紫 (Purple)
+            { bg: '#BC7D73', border: '#9E5E55', text: '#FFFFFF' }, // 豆沙紅 (Warm)
+            { bg: '#86A397', border: '#658277', text: '#FFFFFF' }, // 湖水灰綠 (Green)
+            { bg: '#6C8092', border: '#4F6172', text: '#FFFFFF' }, // 丹寧灰 (Blue)
+            { bg: '#B58C73', border: '#966E56', text: '#FFFFFF' }, // 奶茶棕 (Yellow)
+            { bg: '#857A8C', border: '#645A6B', text: '#FFFFFF' }, // 丁香灰 (Purple)
+            { bg: '#C18579', border: '#A3655A', text: '#FFFFFF' }, // 陶土紅 (Warm)
+            { bg: '#8EA178', border: '#6E8159', text: '#FFFFFF' }, // 抹茶 (Green)
+            { bg: '#697282', border: '#4C5564', text: '#FFFFFF' }, // 石板藍 (Blue)
+            { bg: '#C49871', border: '#A87A53', text: '#FFFFFF' }, // 麥田金 (Yellow)
+            { bg: '#787586', border: '#5A5768', text: '#FFFFFF' }, // 紫灰 (Purple)
+            { bg: '#BD8A81', border: '#A16E65', text: '#FFFFFF' }, // 珊瑚灰 (Warm)
+            { bg: '#748A7A', border: '#566B5C', text: '#FFFFFF' }, // 橄欖綠 (Green)
+            { bg: '#5D7A7C', border: '#405C5E', text: '#FFFFFF' }, // 墨綠灰 (Blue)
+            { bg: '#B39169', border: '#94724A', text: '#FFFFFF' }, // 駝色 (Yellow)
+            { bg: '#9C7A87', border: '#7E5B68', text: '#FFFFFF' }, // 玫瑰灰 (Purple)
+            { bg: '#817478', border: '#66595D', text: '#FFFFFF' }, // 鐵灰紅 (Warm)
+            { bg: '#799386', border: '#5C7568', text: '#FFFFFF' }, // 薄荷灰 (Green)
+            { bg: '#698486', border: '#4C6568', text: '#FFFFFF' }, // 冰川灰 (Blue)
+            { bg: '#A79C6F', border: '#8A7D52', text: '#FFFFFF' }, // 芥末黃灰 (Yellow)
+            { bg: '#787C87', border: '#5A5E68', text: '#FFFFFF' }, // 鴿子灰 (Purple)
+            { bg: '#C47E82', border: '#A65F64', text: '#FFFFFF' }, // 莓果灰 (Warm)
+            { bg: '#5C7463', border: '#3F5645', text: '#FFFFFF' }, // 森林灰綠 (Green)
+            { bg: '#8CA082', border: '#6E8264', text: '#FFFFFF' }, // 青草灰 (Greenish)
+            { bg: '#BD9176', border: '#9E7257', text: '#FFFFFF' }, // 栗棕 (Yellow)
+            { bg: '#918476', border: '#736557', text: '#FFFFFF' }  // 深灰褐 (Brown)
         ];
 
         document.addEventListener('click', (e) => {
@@ -444,19 +469,26 @@
                 const colors = ['var(--btn-blue)', 'var(--btn-purple)', 'var(--btn-green)', 'var(--btn-orange)'];
                 const accentColor = colors[index % colors.length];
 
+                // 👉 修正大廳分數與時間的排版：維持一行橫向水平，不改變按鈕整體高度
                 let recordHtml = '';
                 if (lessonRecords[unit]) {
                     recordHtml = `
-                        <div class="mt-2 pt-2 border-t-2 flex gap-4 text-sm font-bold opacity-90 w-full justify-center" style="border-color: ${accentColor}40;">
-                            <span style="color: #D35400;"><i class="fas fa-star text-yellow-500"></i> ${lessonRecords[unit].score}</span>
-                            <span style="color: #2980B9;"><i class="fas fa-clock"></i> ${formatTime(lessonRecords[unit].time)}</span>
-                        </div>`;
+                        <span class="text-sm px-3 py-1 rounded-full border-2 font-bold bg-white" style="border-color: #F5B04180; color: #D35400;">
+                            <i class="fas fa-star text-yellow-500"></i> ${lessonRecords[unit].score}
+                        </span>
+                        <span class="text-sm px-3 py-1 rounded-full border-2 font-bold bg-white" style="border-color: #5DADE280; color: #2980B9;">
+                            <i class="fas fa-clock"></i> ${formatTime(lessonRecords[unit].time)}
+                        </span>`;
                 }
 
                 btn.innerHTML = `
-                    <span style="color: ${accentColor}"><i class="fas fa-book"></i> ${unit}</span>
-                    <span class="text-sm px-3 py-1 rounded-full border-2" style="border-color: ${accentColor}40; color: var(--text-light); background: white;">包含 ${wordCount} 個語詞</span>
-                    ${recordHtml}
+                    <div class="flex flex-col items-center gap-3 w-full">
+                        <span style="color: ${accentColor}" class="text-xl"><i class="fas fa-book"></i> ${unit}</span>
+                        <div class="flex flex-wrap items-center justify-center gap-2 w-full">
+                            <span class="text-sm px-3 py-1 rounded-full border-2" style="border-color: ${accentColor}40; color: var(--text-light); background: white;">包含 ${wordCount} 個語詞</span>
+                            ${recordHtml}
+                        </div>
+                    </div>
                 `;
                 btn.onclick = () => startGame(unit);
                 btnContainer.appendChild(btn);
@@ -810,7 +842,6 @@
             else { btnQuiz2.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz2.disabled = false; }
         }
 
-        // 🎯 呼叫後端 API，只傳遞語詞清單，由後端使用英文模板生成
         async function callGeminiAPI(allWordsStr, unitName) {
             const response = await fetch(GAS_API_URL, { 
                 method: 'POST', 
@@ -846,32 +877,25 @@
             let cachedList = cachedStories[currentLessonName] || [];
             let aiText = "";
 
-            // 🌟 容錯與快取檢查邏輯 🌟
             if (cachedList.length >= 10) {
-                // 如果 K 到 T 欄已經滿 10 篇，直接無腦抽一篇，完全不消耗 API
                 aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
                 await new Promise(resolve => setTimeout(resolve, 800)); 
             } else {
-                // 不滿 10 篇，呼叫 API 幫忙寫，並讓後端寫入試算表
                 try {
-                    let allWordsStr = allWords.join(', ');
+                    let allWordsStr = allWords.join('、');
                     aiText = await callGeminiAPI(allWordsStr, currentLessonName);
-
                     if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
-                    cachedStories[currentLessonName].push(aiText); // 寫入前端暫存
-
+                    cachedStories[currentLessonName].push(aiText); 
                 } catch (err) {
-                    console.warn("API 生成失敗，將嘗試使用現有快取:", err);
-                    // 🚨 Fallback：就算 API 壞了，只要快取裡有大於 0 篇文章，照樣可以抽出來玩！
+                    console.warn("API 生成失敗，降級使用快取:", err);
                     if (cachedList.length > 0) {
                         aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
-                        console.log("使用備用快取文章成功");
                     } else {
                         let errTitle = "網路不穩或生成失敗";
                         let errDesc = "目前沒有足夠的快取文章，請稍候重試。";
-                        if (String(err).includes("quota") || String(err).includes("exceeded")) {
+                        if (String(err).includes("quota") || String(err).includes("exceeded") || String(err).includes("limit")) {
                             errTitle = "AI 老師太忙碌啦！";
-                            errDesc = "免費額度已達上限，建議老師先預先生成快取文章。";
+                            errDesc = "目前有太多人同時使用，請等待 1 分鐘後再點擊測驗重試。";
                         }
                         loadingBox.innerHTML = `<i class="fas fa-exclamation-triangle text-5xl mb-6 text-red-400"></i><p class="text-xl font-bold text-red-600 mb-2">${errTitle}</p><p class="text-sm text-gray-500">${errDesc}</p>`;
                         return; 
@@ -883,27 +907,30 @@
             const bankContainer = document.getElementById('word-bank-container');
             articleContainer.innerHTML = ''; bankContainer.innerHTML = '';
 
-            let displayHtml = aiText.replace(/\n/g, '<br>');
             let wordsToBank = [];
             let sortedWords = [...allWords].sort((a,b) => b.length - a.length);
 
+            let hasAnyMatch = false;
             let matchCount = 0;
-            sortedWords.forEach(w => {
-                if (matchCount >= 7) return; 
-                if (displayHtml.includes(w)) {
-                    let regex = new RegExp(w, 'g');
-                    displayHtml = displayHtml.replace(regex, `<span class="dropzone" data-answer="${w}"></span>`);
-                    wordsToBank.push(w);
-                    matchCount++;
-                }
-            });
 
-            if (wordsToBank.length === 0) {
+            for (let w of sortedWords) {
+                if (aiText.includes(w)) {
+                    hasAnyMatch = true;
+                    if (matchCount < 7) {
+                        let regex = new RegExp(w, 'g');
+                        aiText = aiText.replace(regex, `<span class="dropzone" data-answer="${w}"></span>`);
+                        wordsToBank.push(w);
+                        matchCount++;
+                    }
+                }
+            }
+
+            if (!hasAnyMatch) {
                 loadingBox.innerHTML = `<i class="fas fa-exclamation-triangle text-5xl mb-4 text-red-400"></i><p class="text-lg font-bold text-red-600">生成文章未包含目標語詞，請關閉重試。</p>`;
                 return;
             }
 
-            articleContainer.innerHTML = displayHtml;
+            articleContainer.innerHTML = aiText.replace(/\n/g, '<br>');
 
             wordsToBank.sort(() => Math.random() - 0.5);
             wordsToBank.forEach((w, i) => {
@@ -926,8 +953,8 @@
                 zone.addEventListener('click', () => {
                     if (zone.classList.contains('correct') || zone.classList.contains('checking')) return;
                     if (zone.classList.contains('filled')) {
-                        let prevWord = zone.innerText; zone.innerText = ''; zone.classList.remove('filled', 'wrong');
-                        let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === prevWord);
+                        let prevWord = zone.innerText.trim(); zone.innerText = ''; zone.classList.remove('filled', 'wrong');
+                        let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText.trim() === prevWord);
                         if (sourceEl) sourceEl.classList.remove('used');
                         checkAllZonesFilled();
                     } else if (selectedTouchWord) {
@@ -944,7 +971,7 @@
         function handleFillBlank(zone, word, sourceEl) {
             document.getElementById('retry-msg').classList.add('hidden');
             if (zone.classList.contains('filled')) {
-                let prevEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
+                let prevEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText.trim() === zone.innerText.trim());
                 if (prevEl) prevEl.classList.remove('used');
             }
             zone.innerText = word; zone.classList.add('filled'); zone.classList.remove('wrong');
@@ -960,71 +987,87 @@
         }
 
         async function checkAllAnswers() {
-            const zones = document.querySelectorAll('.dropzone');
             const checkBtn = document.getElementById('check-ans-btn');
-            const retryMsg = document.getElementById('retry-msg');
-            const allCorrectMsg = document.getElementById('all-correct-msg');
+            // 👉 防止學生連點導致非同步流程錯亂
+            if (checkBtn.disabled) return;
             
             checkBtn.disabled = true;
             checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 批改中...';
+            
+            const retryMsg = document.getElementById('retry-msg');
+            const allCorrectMsg = document.getElementById('all-correct-msg');
             retryMsg.classList.add('hidden');
             
+            const zones = document.querySelectorAll('.dropzone');
             let allCorrect = true;
             let hasWrong = false;
 
-            for (let i = 0; i < zones.length; i++) {
-                const zone = zones[i];
-                if (zone.classList.contains('correct')) continue; 
+            try {
+                for (let i = 0; i < zones.length; i++) {
+                    const zone = zones[i];
+                    if (zone.classList.contains('correct')) continue; 
 
-                zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                zone.classList.add('checking');
-                
-                await new Promise(r => setTimeout(r, 600)); 
-                
-                zone.classList.remove('checking');
+                    // 👉 容錯處理：在某些舊版 iOS / Safari 呼叫平滑捲動會出錯，加上 Try Catch 保護
+                    try {
+                        zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } catch(e) {
+                        zone.scrollIntoView(); 
+                    }
+                    
+                    zone.classList.add('checking');
+                    await new Promise(r => setTimeout(r, 600)); 
+                    zone.classList.remove('checking');
 
-                if (zone.innerText === zone.dataset.answer) {
-                    zone.classList.remove('filled', 'wrong'); 
-                    zone.classList.add('correct');
+                    // 👉 嚴格去空白，避免被多餘字元干擾
+                    let filledWord = zone.innerText.trim();
+                    let correctWord = zone.dataset.answer.trim();
+
+                    if (filledWord === correctWord) {
+                        zone.classList.remove('filled', 'wrong'); 
+                        zone.classList.add('correct');
+                        
+                        const popup = document.createElement('div');
+                        popup.className = 'coin-popup';
+                        popup.innerHTML = '+20 <i class="fas fa-coins text-yellow-500"></i>';
+                        zone.appendChild(popup);
+                        
+                        score += 20;
+                        document.getElementById('score-display').innerText = score;
+                        
+                        setTimeout(() => popup.remove(), 1000);
+                    } else {
+                        allCorrect = false;
+                        hasWrong = true;
+                        zone.classList.add('wrong');
+                        
+                        setTimeout(() => {
+                            if (!zone.classList.contains('correct')) {
+                                let currentText = zone.innerText.trim();
+                                let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText.trim() === currentText);
+                                zone.innerText = ''; zone.classList.remove('filled', 'wrong');
+                                if (sourceEl) sourceEl.classList.remove('used');
+                                checkAllZonesFilled(); 
+                            }
+                        }, 800);
+                    }
                     
-                    const popup = document.createElement('div');
-                    popup.className = 'coin-popup';
-                    popup.innerHTML = '+20 <i class="fas fa-coins text-yellow-500"></i>';
-                    zone.appendChild(popup);
-                    
-                    score += 20;
-                    document.getElementById('score-display').innerText = score;
-                    
-                    setTimeout(() => popup.remove(), 1000);
-                    
-                } else {
-                    allCorrect = false;
-                    hasWrong = true;
-                    zone.classList.add('wrong');
-                    
-                    setTimeout(() => {
-                        if (!zone.classList.contains('correct')) {
-                            let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
-                            zone.innerText = ''; zone.classList.remove('filled', 'wrong');
-                            if (sourceEl) sourceEl.classList.remove('used');
-                            checkAllZonesFilled(); 
-                        }
-                    }, 800);
+                    await new Promise(r => setTimeout(r, 200)); 
                 }
-                
-                await new Promise(r => setTimeout(r, 200)); 
-            }
-
-            if (allCorrect) {
-                checkBtn.classList.add('hidden');
-                allCorrectMsg.classList.remove('hidden');
-                setTimeout(() => { showWinEffect(); }, 500);
-            } else {
-                checkBtn.disabled = false;
-                checkBtn.innerHTML = '<i class="fas fa-tasks"></i> 批改答案';
-                checkBtn.classList.add('hidden'); 
-                if (hasWrong) {
-                    retryMsg.classList.remove('hidden');
+            } catch (error) {
+                // 👉 最強保護網：萬一發生未知錯誤，確保按鈕能恢復，不會卡死「批改中」
+                console.error("批改過程發生錯誤:", error);
+            } finally {
+                if (allCorrect) {
+                    checkBtn.classList.add('hidden');
+                    allCorrectMsg.classList.remove('hidden');
+                    setTimeout(() => { showWinEffect(); }, 500);
+                } else {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = '<i class="fas fa-tasks"></i> 批改答案';
+                    checkBtn.classList.add('hidden'); 
+                    if (hasWrong) {
+                        retryMsg.classList.remove('hidden');
+                    }
                 }
             }
         }
