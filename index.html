@@ -3,46 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 🟢 STREAMING_CHUNK:Configuring metadata and basic setup -->
-    <title>國語找字遊戲 v2.6</title>
+    <title>國語找字遊戲 v2.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap');
 
-        /* 🟢 STREAMING_CHUNK:Defining color variables and theme */
         :root {
-            --bg-base: #F4F1ED;
-            --bg-pattern: #EBE6DF;
-            
-            --text-main: #696561;
-            --text-light: #9B9895;
-            
+            --bg-base: #F4F1ED; 
+            --bg-pattern: #EBE6DF; 
+            --text-main: #696561; 
+            --text-light: #9B9895; 
             --panel-bg: #FFFFFF;
-            --panel-border: #D8D2CB;
-            
-            --grid-border: #BDB5AD;
+            --panel-border: #D8D2CB; 
+            --grid-border: #BDB5AD; 
             --cell-bg: #FCFBF9;
             --cell-border: #E8E4DF;
             --cell-hover: #F0EBE5;
-            
-            --cell-selected-bg: #C1C9C8;
+            --cell-selected-bg: #C1C9C8; 
             --cell-selected-border: #9BA6A5;
             --cell-selected-text: #4A5554;
-            
-            --cell-found-bg: #D4A373;
+            --cell-found-bg: #D4A373; 
             --cell-found-border: #BC8A59;
             --cell-found-text: #FFFFFF;
-
-            --btn-blue: #A8B8C2;
+            --btn-blue: #A8B8C2; 
             --btn-blue-hover: #8A9CA8;
-            --btn-purple: #C2B8CC;
+            --btn-purple: #C2B8CC; 
             --btn-purple-hover: #A69AB2;
-            --btn-green: #B5C4B1;
+            --btn-green: #B5C4B1; 
             --btn-green-hover: #98A994;
-            --btn-orange: #D4BBA5;
+            --btn-orange: #D4BBA5; 
             --btn-orange-hover: #BCA089;
-            
             --lobby-btn-bg: #F8F6F4;
             --lobby-btn-border: #D4CFC9;
             --lobby-btn-hover: #E2DDD6;
@@ -62,555 +53,112 @@
             color: var(--text-main);
         }
 
-        /* 🟢 STREAMING_CHUNK:Styling main layout components */
         .footer-version {
-            position: fixed;
-            bottom: 10px;
-            right: 15px;
-            font-size: 0.85rem;
-            color: var(--text-light);
-            z-index: 9999;
-            pointer-events: none;
-            font-weight: bold;
+            position: fixed; bottom: 10px; right: 15px; font-size: 0.85rem; color: var(--text-light); z-index: 9999; pointer-events: none; font-weight: bold;
         }
 
-        #lobby-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+        #lobby-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .lobby-panel { background: var(--panel-bg); padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(105, 101, 97, 0.08); max-width: 800px; width: 100%; text-align: center; border-top: 8px solid var(--grid-border); }
+        .lesson-btn { background: var(--lobby-btn-bg); color: var(--text-main); border: 3px solid var(--lobby-btn-border); border-radius: 20px; padding: 20px; font-size: 1.25rem; font-weight: bold; transition: all 0.2s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 6px 0 var(--lobby-btn-border); }
+        .lesson-btn:hover { background: var(--lobby-btn-hover); transform: translateY(-2px); box-shadow: 0 8px 0 var(--lobby-btn-border); }
+        .lesson-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--lobby-btn-border); }
 
-        .lobby-panel {
-            background: var(--panel-bg);
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(105, 101, 97, 0.08);
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            border-top: 8px solid var(--grid-border);
-        }
+        #game-container { max-width: 1200px; width: 100%; margin: 0 auto; min-height: 100vh; display: none; flex-direction: column; align-items: center; padding: 20px; }
+        .header-panel { background: var(--panel-bg); padding: 12px 25px; border-radius: 50px; box-shadow: 0 6px 0 var(--panel-border); display: flex; gap: 20px; align-items: center; margin-bottom: 25px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .back-btn { background: var(--bg-base); color: var(--text-main); border: 2px solid var(--panel-border); padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .back-btn:hover { background: var(--lobby-btn-hover); }
 
-        .lesson-btn {
-            background: var(--lobby-btn-bg);
-            color: var(--text-main);
-            border: 3px solid var(--lobby-btn-border);
-            border-radius: 20px;
-            padding: 20px;
-            font-size: 1.25rem;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 6px 0 var(--lobby-btn-border);
-        }
+        .word-search-grid { display: grid; gap: 6px; background-color: var(--panel-bg); padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(105, 101, 97, 0.08); border: 8px solid var(--grid-border); position: relative; touch-action: none; margin-bottom: 20px; z-index: 1; }
+        .cell { width: clamp(35px, 8vmin, 50px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background-color: var(--cell-bg); border-radius: 12px; font-weight: bold; font-size: clamp(18px, 4vmin, 24px); color: var(--text-main); cursor: pointer; transition: all 0.15s ease; border: 2px solid var(--cell-border); box-shadow: 0 3px 0 var(--panel-border); z-index: 2; }
+        .cell:hover:not(.found):not(.selected) { background-color: var(--cell-hover); transform: translateY(-2px); }
+        .cell.selected { background-color: var(--cell-selected-bg); border-color: var(--cell-selected-border); color: var(--cell-selected-text); transform: scale(1.1) !important; box-shadow: 0 4px 0 var(--cell-selected-border) !important; filter: brightness(0.95); z-index: 10; }
+        .cell.path-preview { transform: scale(1.08) translateY(-2px); background-color: var(--cell-hover); border-color: var(--cell-selected-border); z-index: 8; box-shadow: 0 4px 0 var(--panel-border); }
+        .cell.found { background-color: var(--cell-found-bg) !important; border-color: var(--cell-found-border) !important; color: var(--cell-found-text) !important; box-shadow: none !important; animation: pop 0.4s ease; }
+        .preview-line { position: absolute; background-color: var(--cell-selected-bg); opacity: 0.5; z-index: 1; border-radius: 20px; pointer-events: none; transform-origin: left center; }
 
-        .lesson-btn:hover {
-            background: var(--lobby-btn-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 0 var(--lobby-btn-border);
-        }
-        
-        .lesson-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 var(--lobby-btn-border);
-        }
+        .word-list { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-start; width: 100%; }
+        .word-tag { background: var(--panel-bg); padding: 10px 18px; border-radius: 20px; font-size: 1rem; color: var(--text-light); border: 2px dashed var(--panel-border); transition: all 0.3s; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: bold; position: relative; }
+        .word-tag.found { background: var(--cell-found-bg); color: var(--cell-found-text); border: 2px solid var(--cell-found-border); box-shadow: 0 4px 0 var(--cell-found-border); opacity: 1; }
+        .word-tag.found:active { transform: translateY(4px); box-shadow: none; }
+        .crown-icon { position: absolute; top: -12px; right: -10px; color: #F4D03F; font-size: 1.3rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); transform: rotate(15deg); z-index: 10; }
+        .plus-50 { display: inline-block; color: #2E7D32; font-weight: 900; margin-left: 8px; animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        #game-container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        /* 🟢 STREAMING_CHUNK:Styling game grid and cells */
-        .header-panel {
-            background: var(--panel-bg);
-            padding: 12px 25px;
-            border-radius: 50px;
-            box-shadow: 0 6px 0 var(--panel-border);
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            margin-bottom: 25px;
-            width: 100%;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .back-btn, .restart-btn {
-            background: var(--bg-base);
-            color: var(--text-main);
-            border: 2px solid var(--panel-border);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .back-btn:hover, .restart-btn:hover { background: var(--lobby-btn-hover); }
-        .restart-btn { color: #2E7D32; border-color: #A5D6A7; background: #E8F5E9; }
-        .restart-btn:hover { background: #C8E6C9; }
-
-        .word-search-grid {
-            display: grid;
-            gap: 6px;
-            background-color: var(--panel-bg);
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(105, 101, 97, 0.08);
-            border: 8px solid var(--grid-border);
-            position: relative;
-            touch-action: none;
-            margin-bottom: 20px;
-            z-index: 1;
-        }
-
-        .cell {
-            width: clamp(35px, 8vmin, 50px);
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--cell-bg);
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: clamp(18px, 4vmin, 24px);
-            color: var(--text-main);
-            cursor: pointer;
-            transition: all 0.15s ease;
-            border: 2px solid var(--cell-border);
-            box-shadow: 0 3px 0 var(--panel-border);
-            z-index: 2;
-        }
-
-        .cell:hover:not(.found):not(.selected) {
-            background-color: var(--cell-hover);
-            transform: translateY(-2px);
-        }
-
-        .cell.selected {
-            background-color: var(--cell-selected-bg);
-            border-color: var(--cell-selected-border);
-            color: var(--cell-selected-text);
-            transform: scale(1.1) !important; 
-            box-shadow: 0 4px 0 var(--cell-selected-border) !important;
-            filter: brightness(0.95);
-            z-index: 10;
-        }
-
-        .cell.path-preview {
-            transform: scale(1.08) translateY(-2px);
-            background-color: var(--cell-hover);
-            border-color: var(--cell-selected-border);
-            z-index: 8;
-            box-shadow: 0 4px 0 var(--panel-border);
-        }
-
-        .cell.found {
-            background-color: var(--cell-found-bg) !important;
-            border-color: var(--cell-found-border) !important;
-            color: var(--cell-found-text) !important;
-            box-shadow: none !important;
-            animation: pop 0.4s ease;
-        }
-
-        .preview-line {
-            position: absolute;
-            background-color: var(--cell-selected-bg);
-            opacity: 0.5;
-            z-index: 1;
-            border-radius: 20px;
-            pointer-events: none;
-            transform-origin: left center;
-        }
-
-        /* 🟢 STREAMING_CHUNK:Styling word list and tags */
-        .word-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: flex-start;
-            width: 100%;
-        }
-        
-        .word-tag {
-            background: var(--panel-bg);
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 1rem;
-            color: var(--text-light);
-            border: 2px dashed var(--panel-border);
-            transition: all 0.3s;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            position: relative;
-        }
-
-        .word-tag.found {
-            background: var(--cell-found-bg);
-            color: var(--cell-found-text);
-            border: 2px solid var(--cell-found-border);
-            box-shadow: 0 4px 0 var(--cell-found-border);
-            text-decoration: none;
-            opacity: 1;
-        }
-        
-        .word-tag.found:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
-
-        .crown-icon {
-            position: absolute;
-            top: -12px;
-            right: -10px;
-            color: #F4D03F;
-            font-size: 1.3rem;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
-            transform: rotate(15deg);
-            z-index: 10;
-        }
-
-        .plus-50 {
-            display: inline-block;
-            color: #2E7D32;
-            font-weight: 900;
-            margin-left: 8px;
-            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .list-panel-box {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .word-list-scroll {
-            overflow-y: auto;
-            overflow-x: hidden;
-            flex: 1;
-            padding-top: 16px;   
-            padding-right: 16px; 
-            padding-left: 4px;
-            padding-bottom: 10px;
-            align-content: flex-start; 
-        }
-        
+        .list-panel-box { display: flex; flex-direction: column; overflow: hidden; }
+        .word-list-scroll { overflow-y: auto; overflow-x: hidden; flex: 1; padding: 16px 16px 10px 4px; align-content: flex-start; }
         .word-list-scroll::-webkit-scrollbar { width: 6px; }
         .word-list-scroll::-webkit-scrollbar-track { background: var(--bg-base); border-radius: 10px; }
         .word-list-scroll::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
 
-        /* 🟢 STREAMING_CHUNK:Styling modals and animations */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(105, 101, 97, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            backdrop-filter: blur(5px);
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(105, 101, 97, 0.6); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(5px); }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--panel-bg); padding: 35px 25px 25px 25px; border-radius: 30px; text-align: center; max-width: 90%; width: 450px; border: 8px solid var(--grid-border); box-shadow: 0 20px 50px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; display: flex; flex-direction: column; align-items: center; max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-header-bar { position: absolute; top: 0; left: 0; width: 100%; height: 12px; background: var(--btn-blue); }
+        .close-btn { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #F0EBE5; color: #9B9895; cursor: pointer; transition: 0.2s; font-size: 1.2rem; }
+        .close-btn:hover { background: #E8E4DF; color: #696561; }
 
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 35px 25px 25px 25px;
-            border-radius: 30px;
-            text-align: center;
-            max-width: 90%;
-            width: 450px;
-            border: 8px solid var(--grid-border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            transform: scale(0.9);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.show .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-header-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 12px;
-            background: var(--btn-blue);
-        }
-
-        .meaning-box {
-            background: var(--bg-base);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 10px 0;
-            color: var(--text-main);
-            text-align: left;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            border-left: 5px solid var(--panel-border);
-            width: 100%;
-        }
-
-        .content-box {
-            padding: 15px;
-            border-radius: 15px;
-            margin: 10px 0;
-            text-align: left;
-            font-size: 1rem;
-            line-height: 1.6;
-            width: 100%;
-            display: none;
-        }
+        .meaning-box { background: var(--bg-base); padding: 15px; border-radius: 15px; margin: 10px 0; color: var(--text-main); text-align: left; font-size: 1.1rem; line-height: 1.6; border-left: 5px solid var(--panel-border); width: 100%; }
+        .content-box { padding: 15px; border-radius: 15px; margin: 10px 0; text-align: left; font-size: 1rem; line-height: 1.6; width: 100%; display: none; }
         .content-box.show { display: block; animation: fadeIn 0.4s; }
-
         .box-sentence { background: #EDF1F4; border-left: 5px solid var(--btn-blue); color: #5B6B75; }
-        .box-origin { background: #F4EFF5; border-left: 5px solid var(--btn-purple); color: #6D627A; }
         .box-quiz { background: #EEF3ED; border-left: 5px solid var(--btn-green); color: #586B54; }
 
-        .quiz-option {
-            background: white;
-            border: 2px solid var(--panel-border);
-            padding: 10px 12px;
-            margin-top: 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-        }
-        
+        .quiz-option { background: white; border: 2px solid var(--panel-border); padding: 10px 12px; margin-top: 8px; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-weight: bold; }
         .quiz-option:hover { background: var(--bg-base); }
-        .quiz-option.correct { background: var(--cell-found-bg); border-color: var(--cell-found-border); color: var(--cell-found-text); }
-        .quiz-option.wrong { background: #E8D6D6; border-color: #CFA3A3; color: #8A5A5A; }
+        .quiz-option.correct { background: var(--cell-found-bg); border-color: var(--cell-found-border); color: var(--cell-found-text); pointer-events: none; }
+        .quiz-option.wrong { background: #E8D6D6; border-color: #CFA3A3; color: #8A5A5A; pointer-events: none; }
 
-        .btn {
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.15s;
-            margin: 5px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:active:not(:disabled) {
-            transform: translateY(4px);
-            box-shadow: none !important;
-        }
-        
-        .btn:disabled {
-            background-color: var(--grid-border) !important;
-            box-shadow: none !important;
-            cursor: not-allowed;
-            transform: none;
-            opacity: 0.7;
-        }
-
+        .btn { color: white; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.15s; margin: 5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: none !important; }
+        .btn:disabled { background-color: var(--grid-border) !important; box-shadow: none !important; cursor: not-allowed; transform: none; opacity: 0.7; }
         .btn-sentence { background: var(--btn-blue); box-shadow: 0 4px 0 #8DA0AC; }
         .btn-sentence:hover { background: var(--btn-blue-hover); }
-        .btn-origin { background: var(--btn-purple); box-shadow: 0 4px 0 #A89CB5; }
-        .btn-origin:hover { background: var(--btn-purple-hover); }
         .btn-quiz { background: var(--btn-green); box-shadow: 0 4px 0 #9DB099; }
         .btn-quiz:hover { background: var(--btn-green-hover); }
 
-        /* 🟢 STREAMING_CHUNK:Styling Fill-in-the-blank modal */
         #fill-blank-modal .modal-content {
-            width: 1000px;
-            max-width: 95%;
-            padding: 30px 20px;
-            background: #FAFAFA;
+            width: 1000px; max-width: 95%; padding: 40px 30px; background: #FAFAFA;
+            flex-direction: row; align-items: stretch; gap: 20px; text-align: left; overflow: hidden;
         }
-
-        .article-box {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            text-align: left;
-            font-size: 1.15rem;
-            line-height: 2.2;
-            color: var(--text-main);
-            border: 2px dashed var(--panel-border);
-            width: 100%;
-        }
-
-        .dropzone {
-            display: inline-block;
-            min-width: 80px;
-            height: 36px;
-            margin: 0 6px;
-            border-bottom: 3px solid var(--btn-blue);
-            background: #EDF1F4;
-            vertical-align: middle;
-            text-align: center;
-            line-height: 36px;
-            border-radius: 8px 8px 0 0;
-            color: var(--btn-blue);
-            font-weight: bold;
-            transition: all 0.2s;
-            cursor: pointer;
+        @media (max-width: 768px) {
+            #fill-blank-modal .modal-content { flex-direction: column; overflow-y: auto; }
+            .words-col { position: relative !important; top: 0 !important; width: 100% !important; margin-top: 15px; }
         }
         
-        .dropzone.active-target {
-            background: #D5E1E8;
-            border-bottom-color: var(--btn-orange);
-        }
+        .article-col { flex: 2; overflow-y: auto; max-height: 70vh; padding-right: 15px; }
+        .words-col { flex: 1; position: sticky; top: 0; background: var(--bg-base); padding: 20px; border-radius: 20px; border: 4px solid var(--grid-border); display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
+        
+        .article-col::-webkit-scrollbar { width: 8px; }
+        .article-col::-webkit-scrollbar-track { background: transparent; }
+        .article-col::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
 
-        .dropzone.filled {
-            background: var(--btn-blue);
-            color: white;
-            border-bottom-color: var(--btn-blue-hover);
-        }
+        .article-box { background: white; padding: 25px; border-radius: 20px; font-size: 1.2rem; line-height: 2.2; color: var(--text-main); border: 2px dashed var(--panel-border); margin-bottom: 20px; width: 100%; }
+        
+        .dropzone { display: inline-block; min-width: 80px; height: 38px; margin: 0 6px; border-bottom: 3px solid var(--btn-blue); background: #EDF1F4; vertical-align: middle; text-align: center; line-height: 38px; border-radius: 8px 8px 0 0; color: var(--btn-blue); font-weight: bold; transition: all 0.2s; cursor: pointer; padding: 0 10px; }
+        .dropzone.active-target { background: #D5E1E8; border-bottom-color: var(--btn-orange); }
+        .dropzone.correct { background: var(--cell-found-bg); border-bottom-color: var(--cell-found-border); color: white; pointer-events: none; }
+        .dropzone.wrong { background: #FCE8E8; border-bottom-color: #E74C3C; color: #C0392B; animation: shake 0.4s; }
+        .dropzone.filled { background: var(--btn-blue); color: white; border-bottom-color: var(--btn-blue-hover); }
 
-        .dropzone.correct {
-            background: var(--cell-found-bg) !important;
-            border-bottom-color: var(--cell-found-border) !important;
-            color: white !important;
-            pointer-events: none;
-        }
-
-        .dropzone.wrong {
-            background: #FCE8E8 !important;
-            border-bottom-color: #E74C3C !important;
-            color: #C0392B !important;
-            animation: shake 0.4s;
-        }
-
-        .word-bank {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-            padding: 20px;
-            background: var(--bg-base);
-            border-radius: 15px;
-            border: 2px solid var(--panel-border);
-            position: sticky;
-            top: 20px; 
-            max-height: calc(100vh - 120px); 
-            overflow-y: auto;
-        }
-
-        .word-bank-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .drag-word {
-            background: var(--panel-bg);
-            border: 2px solid var(--btn-blue);
-            color: var(--btn-blue);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: grab;
-            user-select: none;
-            transition: all 0.2s;
-            box-shadow: 0 4px 0 var(--btn-blue);
-        }
-
+        .word-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; width: 100%; }
+        .drag-word { background: var(--panel-bg); border: 2px solid var(--btn-blue); color: var(--btn-blue); padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: grab; user-select: none; transition: all 0.2s; box-shadow: 0 4px 0 var(--btn-blue); }
         .drag-word:active { cursor: grabbing; transform: translateY(4px); box-shadow: none; }
         .drag-word.selected-for-touch { background: var(--btn-blue); color: white; transform: translateY(2px); box-shadow: 0 2px 0 var(--btn-blue-hover); }
-        .drag-word.used { opacity: 0; pointer-events: none; display: none; } /* 填入後完全隱藏 */
+        .drag-word.used { display: none; } 
 
-        #init-loader {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-base);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-main);
-        }
+        #init-loader { position: fixed; inset: 0; background: var(--bg-base); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-main); }
+        canvas#fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 90; }
 
-        canvas#fireworks {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 90;
-        }
-
-        /* 🟢 STREAMING_CHUNK:Keyframes and util classes */
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
-        
-        @keyframes pop {
-            0% { transform: scale(0.9); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
+        @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body>
 
-    <!-- 🟢 STREAMING_CHUNK:HTML Structure Setup -->
-    <div class="footer-version">大榮老師製作 © 2026 | Version 2.6</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 2.7 (v2.7)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -620,7 +168,7 @@
 
     <canvas id="fireworks"></canvas>
 
-    <!-- Lobby -->
+    <!-- 大廳 -->
     <div id="lobby-container">
         <div class="lobby-panel">
             <div class="inline-block p-4 rounded-full bg-white mb-4 shadow-sm border-2 border-gray-100">
@@ -628,23 +176,22 @@
             </div>
             <h1 class="text-4xl font-black mb-2 tracking-wider">語詞探索遊戲</h1>
             <p class="font-bold opacity-60 mb-8">請選擇你要挑戰的單元</p>
-            <div id="lesson-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            </div>
+            <div id="lesson-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
     </div>
 
-    <!-- Main Game Area -->
+    <!-- 遊戲畫面 -->
     <div id="game-container">
         <div class="header-panel flex justify-between">
             <button onclick="returnToLobby()" class="back-btn">
-                <i class="fas fa-arrow-left"></i> <span class="hidden md:inline">返回大廳</span>
+                <i class="fas fa-home"></i> <span class="hidden md:inline">回大廳</span>
             </button>
             
             <h1 id="game-title" class="text-xl md:text-2xl font-bold tracking-wider m-0">單元名稱</h1>
             
             <div class="flex items-center gap-3">
-                <button onclick="startGame(currentLessonName)" class="restart-btn" id="restart-btn" style="display:none;">
-                    <i class="fas fa-redo"></i> <span class="hidden md:inline">重玩</span>
+                <button onclick="startGame(currentLessonName)" class="back-btn" style="color: var(--btn-green); border-color: var(--btn-green);">
+                    <i class="fas fa-redo-alt"></i> <span class="hidden md:inline">重玩</span>
                 </button>
                 <div class="flex items-center gap-2 font-bold text-lg px-4 py-1 rounded-full bg-white border-2" style="border-color: var(--panel-border);">
                     <i class="fas fa-clock" style="color: var(--btn-blue)"></i> 
@@ -665,22 +212,18 @@
 
         <div class="flex flex-col md:flex-row gap-8 w-full justify-center items-stretch" id="main-content-area">
             <div class="flex flex-col items-center relative shrink-0">
-                <div id="grid-container" class="word-search-grid">
-                </div>
+                <div id="grid-container" class="word-search-grid"></div>
             </div>
 
             <div id="right-panel" class="list-panel-box bg-white p-6 rounded-3xl border-4" style="border-color: var(--panel-border); flex: 1; min-width: 300px;">
                 <div class="flex justify-between items-end mb-4 border-b-2 pb-2 shrink-0" style="border-color: var(--bg-base);">
-                    <h2 class="text-xl font-bold">
-                        <i class="fas fa-list-ul"></i> 尋找目標
-                    </h2>
+                    <h2 class="text-xl font-bold"><i class="fas fa-list-ul"></i> 尋找目標</h2>
                     <span class="text-sm font-bold px-3 py-1 rounded-full" style="background: var(--bg-base); color: var(--text-light);">
                         <span id="found-count">0</span> / <span id="total-count">0</span>
                     </span>
                 </div>
                 
-                <div id="word-list-container" class="word-list word-list-scroll">
-                </div>
+                <div id="word-list-container" class="word-list word-list-scroll"></div>
                 
                 <div id="essay-btn-container" class="mt-4 flex justify-center hidden pb-2 shrink-0 border-t-2 pt-4" style="border-color: var(--bg-base);">
                     <button onclick="startFillInTheBlankTest()" class="btn btn-sentence text-lg px-8 py-3 w-full shadow-md" style="animation: bounceIn 0.8s;">
@@ -691,29 +234,18 @@
         </div>
     </div>
 
-    <!-- 🟢 STREAMING_CHUNK:Modals Setup -->
-    <!-- Learning Modal -->
+    <!-- 學習 Modal -->
     <div id="learning-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header-bar" id="modal-color-bar"></div>
-            
-            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500">
-                <i class="fas fa-times"></i>
-            </button>
-            
+            <button onclick="closeModal()" class="close-btn"><i class="fas fa-times"></i></button>
             <h2 id="modal-word" class="text-3xl font-bold mb-1 mt-2 tracking-widest">語詞</h2>
-            
-            <div class="meaning-box">
-                <p id="modal-meaning">這裡會顯示提示解釋...</p>
-            </div>
-
+            <div class="meaning-box"><p id="modal-meaning"></p></div>
             <div id="content-box" class="content-box box-sentence"></div>
-
             <div id="quiz-box" class="content-box box-quiz">
                 <p id="quiz-question" class="font-bold mb-3 text-lg"></p>
                 <div id="quiz-options" class="flex flex-col"></div>
             </div>
-
             <div class="flex justify-center mt-4 w-full gap-2 border-t-2 pt-4" style="border-color: var(--bg-base);" id="modal-buttons">
                 <button onclick="showContent('sentence')" id="btn-ai-sentence" class="btn btn-sentence flex-1">
                     <i class="fas fa-pencil-alt"></i> 造句
@@ -725,88 +257,76 @@
         </div>
     </div>
 
-    <!-- GameOver Modal -->
+    <!-- 結算 Modal -->
     <div id="game-over-modal" class="modal-overlay">
-        <div class="modal-content !overflow-hidden">
-            <div class="modal-header-bar" style="background: var(--cell-found-bg)"></div>
-            <button onclick="document.getElementById('game-over-modal').classList.remove('show'); document.getElementById('restart-btn').style.display = 'flex';" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500">
-                <i class="fas fa-times"></i>
-            </button>
-            <i class="fas fa-trophy text-6xl mb-4 mt-6" style="color: #F4D03F"></i>
-            <h2 class="text-3xl font-bold mb-2">🎉 恭喜完成本單元！</h2>
-            <div class="bg-gray-50 w-full rounded-2xl p-6 mt-4 mb-2 flex flex-col gap-4 border-2 border-dashed border-gray-200">
-                <div class="text-2xl font-bold text-gray-600">
-                    <i class="fas fa-star" style="color: var(--btn-orange)"></i> 總得分： <span id="final-score" style="color: var(--btn-orange); font-size: 2.5rem; margin: 0 10px;">0</span> 分
+        <div class="modal-content overflow-hidden" style="width: 400px; padding: 40px 30px;">
+            <div class="modal-header-bar" style="background: var(--btn-orange)"></div>
+            <button onclick="document.getElementById('game-over-modal').classList.remove('show')" class="close-btn"><i class="fas fa-times"></i></button>
+            
+            <i class="fas fa-trophy text-6xl mb-4 mt-2 text-yellow-400" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));"></i>
+            <h2 class="text-3xl font-black mb-6 text-gray-700">過關！</h2>
+            
+            <div class="bg-gray-50 rounded-2xl p-5 w-full border-2 border-gray-100 mb-2">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-gray-500 font-bold text-lg"><i class="fas fa-star text-orange-400"></i> 總得分</span>
+                    <span class="text-2xl font-black text-orange-500" id="final-score">0</span>
                 </div>
-                <div class="text-lg font-bold text-gray-500">
-                    <i class="fas fa-clock text-blue-400"></i> 完成時間： <span id="final-time" class="text-blue-500 mx-2">00:00</span>
+                <div class="flex justify-between items-center border-t-2 border-gray-200 pt-3">
+                    <span class="text-gray-500 font-bold text-lg"><i class="fas fa-clock text-blue-400"></i> 花費時間</span>
+                    <span class="text-xl font-bold text-blue-500" id="final-time">00:00</span>
                 </div>
             </div>
-            <p class="text-sm text-gray-400 mt-2 font-bold">點擊右上角關閉視窗，可自由查看單字或進行短文測驗</p>
         </div>
     </div>
 
-    <!-- Fill Blank Modal (雙欄式設計) -->
+    <!-- 短文測驗 Modal (雙欄) -->
     <div id="fill-blank-modal" class="modal-overlay">
-        <div class="modal-content !w-[1000px] !max-w-[95vw] !h-[85vh] !max-h-[800px] flex flex-col !p-0 overflow-hidden">
-            <div class="modal-header-bar" style="background: var(--btn-blue)"></div>
+        <div class="modal-content relative flex-col md:flex-row">
+            <div class="modal-header-bar" style="background: var(--btn-blue); z-index: 10;"></div>
+            <button onclick="document.getElementById('fill-blank-modal').classList.remove('show')" class="close-btn z-20"><i class="fas fa-times"></i></button>
             
-            <button onclick="document.getElementById('fill-blank-modal').classList.remove('show')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition text-gray-500 z-10">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <!-- Modal Header -->
-            <div class="p-6 pb-2 border-b border-gray-100 shrink-0">
-                <div class="flex items-center justify-center gap-3">
-                    <i class="fas fa-book-reader text-4xl" style="color: var(--btn-blue)"></i>
-                    <h2 class="text-2xl font-bold m-0">短文測驗</h2>
-                </div>
-                <p class="text-gray-500 mt-2 font-bold text-sm">請閱讀短文，並將右側語詞填入正確的空格中</p>
-            </div>
-            
-            <div id="fb-loading" class="w-full h-full flex flex-col items-center justify-center hidden pb-10">
-                <i class="fas fa-pen-fancy text-5xl mb-6 text-purple-400 animate-pulse"></i>
-                <p class="text-xl font-bold text-gray-600">AI 老師正在量身打造專屬短文<span class="loading-dots"></span></p>
-                <p class="text-sm text-gray-400 mt-2">(若為首次生成約需 5~10 秒)</p>
+            <div id="fb-loading" class="w-full text-center py-10 flex flex-col items-center justify-center min-h-[300px]">
+                <i class="fas fa-pen-fancy text-5xl mb-4 text-purple-400 animate-pulse"></i>
+                <p class="text-xl font-bold text-gray-600">正在準備專屬短文測驗<span class="loading-dots"></span></p>
+                <p class="text-sm text-gray-400 mt-2">請稍候...</p>
             </div>
 
-            <div id="fb-content" class="w-full flex-1 flex flex-col md:flex-row hidden overflow-hidden bg-gray-50">
-                <!-- 左側：文章區 (可捲動) -->
-                <div class="flex-1 p-6 overflow-y-auto" style="min-height: 50vh;">
-                    <div id="article-container" class="bg-white p-6 md:p-8 rounded-2xl text-left text-lg md:text-xl leading-relaxed text-gray-700 shadow-sm border border-gray-200">
-                    </div>
+            <div id="fb-article-col" class="article-col hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <i class="fas fa-book-reader text-3xl text-blue-400"></i>
+                    <h2 class="text-2xl font-bold text-gray-700">短文測驗</h2>
                 </div>
+                <div id="article-container" class="article-box"></div>
+            </div>
+            
+            <div id="fb-words-col" class="words-col hidden">
+                <h3 class="text-lg font-bold text-gray-700 border-b-2 border-gray-200 pb-2">
+                    <i class="fas fa-puzzle-piece text-orange-400"></i> 填空選項
+                </h3>
+                <p class="text-sm text-gray-500 font-bold mb-2">請點擊下方語詞，再點擊文章空格填入。</p>
                 
-                <!-- 右側：待選詞庫 (固定或獨立捲動) -->
-                <div class="w-full md:w-80 bg-white border-l border-gray-200 p-6 flex flex-col shrink-0">
-                    <h3 class="font-bold text-lg mb-4 text-center text-gray-600 border-b pb-2"><i class="fas fa-puzzle-piece"></i> 待填語詞</h3>
-                    <div id="word-bank-container" class="flex flex-wrap justify-center gap-3 mb-6">
-                    </div>
-                    
-                    <div class="mt-auto pt-4 flex flex-col gap-2">
-                        <button id="submit-answers-btn" onclick="submitBlankAnswers()" class="btn btn-quiz w-full py-3 text-lg hidden shadow-md">
-                            <i class="fas fa-check-circle"></i> 核對答案
-                        </button>
-                        <p class="text-xs text-center text-gray-400 font-bold mt-2" id="fb-hint-text">請先填滿所有空格</p>
-                    </div>
+                <div id="word-bank-container" class="word-bank flex-1 content-start"></div>
+                
+                <div class="mt-4 pt-4 border-t-2 border-gray-200">
+                    <button id="check-ans-btn" onclick="checkAllAnswers()" class="btn w-full hidden" style="background: var(--btn-green); box-shadow: 0 4px 0 var(--btn-green-hover); font-size: 1.1rem; padding: 12px;">
+                        <i class="fas fa-check-circle"></i> 核對答案
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 🟢 STREAMING_CHUNK:Initializing global variables and API config
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3aOu9AJzVDdcmWBs9IPrnFClLD_UBnV4NgPlSW5h8PSLxAGkYUFcwnlLpaoYL4466/exec";
         
         let allWordData = []; 
+        let cachedStories = {}; 
         let currentLessonData = []; 
         let GRID_SIZE = 10;
         let grid = [];
         let placedWordsInfo = []; 
         let foundWords = [];
         let score = 0;
-        
-        let allCachedStories = {}; 
         
         let startCell = null;
         let previewLine = null;
@@ -823,54 +343,34 @@
         let quizStatus = {}; 
         let failedWords = []; 
         let selectedTouchWord = null; 
-        
-        let essayGenerationCount = 0; 
         let isEndGameTriggered = false; 
-        let isFillBlankAllCorrect = false;
 
         const earthTonePalette = [
-            { bg: '#C28D75', border: '#A6725B', text: '#FFFFFF' }, 
-            { bg: '#7D9085', border: '#5C7064', text: '#FFFFFF' }, 
-            { bg: '#A67B8A', border: '#8A5D6D', text: '#FFFFFF' }, 
-            { bg: '#6B7A8C', border: '#4E5C6E', text: '#FFFFFF' }, 
-            { bg: '#D4A373', border: '#BC8A59', text: '#FFFFFF' }, 
-            { bg: '#918476', border: '#736557', text: '#FFFFFF' }, 
-            { bg: '#86A397', border: '#658277', text: '#FFFFFF' }, 
-            { bg: '#B58C73', border: '#966E56', text: '#FFFFFF' }, 
-            { bg: '#787586', border: '#5A5768', text: '#FFFFFF' }, 
-            { bg: '#8EA178', border: '#6E8159', text: '#FFFFFF' }, 
-            { bg: '#BC7D73', border: '#9E5E55', text: '#FFFFFF' }, 
-            { bg: '#5D7A7C', border: '#405C5E', text: '#FFFFFF' }, 
-            { bg: '#C49871', border: '#A87A53', text: '#FFFFFF' }, 
-            { bg: '#857A8C', border: '#645A6B', text: '#FFFFFF' }, 
-            { bg: '#748A7A', border: '#566B5C', text: '#FFFFFF' }, 
-            { bg: '#BD8A81', border: '#A16E65', text: '#FFFFFF' }
+            { bg: '#C28D75', border: '#A6725B', text: '#FFFFFF' }, { bg: '#7D9085', border: '#5C7064', text: '#FFFFFF' },
+            { bg: '#A67B8A', border: '#8A5D6D', text: '#FFFFFF' }, { bg: '#6B7A8C', border: '#4E5C6E', text: '#FFFFFF' },
+            { bg: '#D4A373', border: '#BC8A59', text: '#FFFFFF' }, { bg: '#918476', border: '#736557', text: '#FFFFFF' },
+            { bg: '#86A397', border: '#658277', text: '#FFFFFF' }, { bg: '#B58C73', border: '#966E56', text: '#FFFFFF' },
+            { bg: '#787586', border: '#5A5768', text: '#FFFFFF' }, { bg: '#8EA178', border: '#6E8159', text: '#FFFFFF' }
         ];
 
-        // 全域監聽
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.cell') && !e.target.classList.contains('preview-line') && !e.target.closest('.modal-content')) {
                 clearSelection();
             }
         });
 
-        // 🟢 STREAMING_CHUNK:Fetching data from GAS and initializing Lobby
         window.onload = async function() {
             try {
                 const response = await fetch(GAS_API_URL);
                 if (!response.ok) throw new Error("網路連線異常");
                 const data = await response.json();
                 
-                if (data.words && data.stories) {
-                    allWordData = processSheetData(data.words);
-                    allCachedStories = data.stories;
-                } else {
-                    allWordData = processSheetData(data);
-                }
+                allWordData = processSheetData(data.words || data);
+                cachedStories = data.stories || {};
                 
                 if (allWordData.length === 0) throw new Error("讀取到的題庫為空");
             } catch (err) {
-                console.log("ℹ️ " + err.message + "，使用預設展示題庫。");
+                console.log("ℹ️ " + err.message + "，使用預設題庫。");
                 allWordData = getFallbackData();
             }
             
@@ -879,15 +379,6 @@
             renderLobby();
         };
 
-        function getFallbackData() {
-            return [
-                { unit: "第一課", word: "守株待兔", clue: "比喻拘泥守成。", origin: "", sentences: ["造句A"], quiz: { question: "Q1", options: ["O1", "O2", "O3"], correctIndex: 1 } },
-                { unit: "第一課", word: "狐假虎威", clue: "藉別人威勢。", origin: "", sentences: ["造句B"], quiz: { question: "Q2", options: ["O1", "O2", "O3"], correctIndex: 1 } },
-                { unit: "第一課", word: "一帆風順", clue: "非常順利。", origin: "", sentences: ["造句C"], quiz: { question: "Q3", options: ["O1", "O2", "O3"], correctIndex: 0 } },
-                { unit: "第一課", word: "荊棘", clue: "多刺的植物。", origin: "", sentences: ["造句D"], quiz: { question: "Q4", options: ["O1", "O2", "O3"], correctIndex: 2 } }
-            ];
-        }
-
         function processSheetData(data) {
             let processed = [];
             const getVal = (row, possibleKeys) => {
@@ -895,9 +386,8 @@
                 for (let key in row) {
                     let cleanKey = String(key).replace(/[\s\(\)（）]+/g, '').toLowerCase(); 
                     for (let pk of possibleKeys) {
-                        let cleanPk = pk.toLowerCase();
-                        if (cleanKey === cleanPk) return row[key]; 
-                        if (cleanKey.includes(cleanPk)) bestMatch = row[key]; 
+                        if (cleanKey === pk.toLowerCase()) return row[key]; 
+                        if (cleanKey.includes(pk.toLowerCase())) bestMatch = row[key]; 
                     }
                 }
                 return bestMatch;
@@ -916,39 +406,28 @@
                     if (s) sentences.push(String(s).trim());
                 }
                 let sMain = getVal(row, ['造句']);
-                if (sentences.length === 0 && sMain) {
-                    sentences = String(sMain).split('\n').map(s => s.trim()).filter(s => s !== '');
-                }
+                if (sentences.length === 0 && sMain) sentences = String(sMain).split('\n').map(s => s.trim()).filter(s => s !== '');
                 if (sentences.length === 0) sentences.push(`這是一個關於「${word}」的造句。`);
 
-                let opt1Raw = getVal(row, ['選項1', '選項一']);
-                let opt2Raw = getVal(row, ['選項2', '選項二']);
-                let opt3Raw = getVal(row, ['選項3', '選項三']);
-                let opt1 = opt1Raw ? String(opt1Raw).trim() : "";
-                let opt2 = opt2Raw ? String(opt2Raw).trim() : "";
-                let opt3 = opt3Raw ? String(opt3Raw).trim() : "";
-                
                 let correctIdx = row['computedCorrectIndex'] !== undefined ? parseInt(row['computedCorrectIndex']) : 0;
-                let clue = getVal(row, ['解釋', '提示']) ? String(getVal(row, ['解釋', '提示'])).trim() : "請找出這個語詞";
-                let question = getVal(row, ['測驗題目', '題目', '問題']) ? String(getVal(row, ['測驗題目', '題目', '問題'])).trim() : `請問關於「${word}」的解釋何者最接近？`;
+                let clue = getVal(row, ['解釋', '提示']) || "請找出這個語詞";
+                let question = getVal(row, ['測驗題目', '題目', '問題']) || `請問關於「${word}」的解釋何者最接近？`;
 
-                if (!opt1) opt1 = (correctIdx === 0 ? clue : "錯誤的選項 A");
-                if (!opt2) opt2 = (correctIdx === 1 ? clue : "錯誤的選項 B");
-                if (!opt3) opt3 = (correctIdx === 2 ? clue : "錯誤的選項 C");
+                let opt1 = getVal(row, ['選項1', '選項一']) || (correctIdx === 0 ? clue : "錯誤的選項 A");
+                let opt2 = getVal(row, ['選項2', '選項二']) || (correctIdx === 1 ? clue : "錯誤的選項 B");
+                let opt3 = getVal(row, ['選項3', '選項三']) || (correctIdx === 2 ? clue : "錯誤的選項 C");
 
                 processed.push({
-                    unit: unitName, word: word, clue: clue, origin: getVal(row, ['典故']) || "尚無資料", sentences: sentences,
-                    quiz: { question: question, options: [opt1, opt2, opt3], correctIndex: correctIdx }
+                    unit: unitName, word: word, clue: clue, origin: getVal(row, ['典故']) || "尚無典故資料。",
+                    sentences: sentences, quiz: { question: question, options: [opt1, opt2, opt3], correctIndex: correctIdx }
                 });
             });
             return processed;
         }
 
-        // 🟢 STREAMING_CHUNK:Lobby UI and Game Initialization
         function renderLobby() {
             const btnContainer = document.getElementById('lesson-buttons');
             btnContainer.innerHTML = '';
-            
             const uniqueUnits = [...new Set(allWordData.map(item => item.unit))];
 
             uniqueUnits.forEach((unit, index) => {
@@ -964,8 +443,7 @@
                         <div class="mt-2 pt-2 border-t-2 flex gap-4 text-sm font-bold opacity-90 w-full justify-center" style="border-color: ${accentColor}40;">
                             <span style="color: #D35400;"><i class="fas fa-star text-yellow-500"></i> ${lessonRecords[unit].score}</span>
                             <span style="color: #2980B9;"><i class="fas fa-clock"></i> ${formatTime(lessonRecords[unit].time)}</span>
-                        </div>
-                    `;
+                        </div>`;
                 }
 
                 btn.innerHTML = `
@@ -976,17 +454,11 @@
                 btn.onclick = () => startGame(unit);
                 btnContainer.appendChild(btn);
             });
-
             document.getElementById('lobby-container').style.display = 'flex';
             document.getElementById('game-container').style.display = 'none';
-            const canvas = document.getElementById('fireworks');
-            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function returnToLobby() {
-            stopTimer(); 
-            renderLobby();
-        }
+        function returnToLobby() { stopTimer(); renderLobby(); }
 
         function startGame(unitName) {
             currentLessonName = unitName;
@@ -994,11 +466,9 @@
             document.getElementById('game-title').innerText = unitName;
             document.getElementById('lobby-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'flex'; 
-            document.getElementById('restart-btn').style.display = 'none';
             initGame();
         }
 
-        // 🟢 STREAMING_CHUNK:Timer and Grid Logic
         function startTimer() {
             clearInterval(timerInterval);
             timeElapsed = 0;
@@ -1020,7 +490,7 @@
             const gridEl = document.getElementById('grid-container');
             const rightPanel = document.getElementById('right-panel');
             if (window.innerWidth >= 768) rightPanel.style.maxHeight = gridEl.offsetHeight + 'px';
-            else rightPanel.style.maxHeight = 'none'; 
+            else rightPanel.style.maxHeight = 'none';
         }
         window.addEventListener('resize', syncPanelHeight);
 
@@ -1034,13 +504,8 @@
             const fillerChars = uniqueChars.join('') + extraChars;
 
             grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
-            placedWordsInfo = []; foundWords = []; perfectWords = [];
-            quizStatus = {}; failedWords = [];
-            essayGenerationCount = 0; 
-            isEndGameTriggered = false; 
-            isFillBlankAllCorrect = false;
-            score = 0; colorIndex = 0; 
-            
+            placedWordsInfo = []; foundWords = []; perfectWords = []; quizStatus = {}; failedWords = []; 
+            isEndGameTriggered = false; score = 0; colorIndex = 0; 
             document.getElementById('essay-btn-container').classList.add('hidden');
             
             let wordsToPlace = [...currentLessonData].sort(() => 0.5 - Math.random());
@@ -1067,10 +532,9 @@
                 const dir = dirs[Math.floor(Math.random() * dirs.length)];
                 const r = Math.floor(Math.random() * GRID_SIZE);
                 const c = Math.floor(Math.random() * GRID_SIZE);
-                
                 if (canPlace(word, r, c, dir.dr, dir.dc)) {
                     for(let i=0; i<word.length; i++) grid[r + i*dir.dr][c + i*dir.dc] = word[i];
-                    placedWordsInfo.push({word: word, start: {r, c}, end: {r: r + (word.length-1)*dir.dr, c: c + (word.length-1)*dir.dc}});
+                    placedWordsInfo.push({ word: word, start: {r, c}, end: {r: r + (word.length-1)*dir.dr, c: c + (word.length-1)*dir.dc} });
                     return;
                 }
             }
@@ -1085,18 +549,14 @@
             return true;
         }
 
-        // 🟢 STREAMING_CHUNK:Rendering Board and handling interactions
         function renderBoard() {
             const board = document.getElementById('grid-container');
             board.innerHTML = ''; 
             board.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
-            
             for(let r=0; r<GRID_SIZE; r++) {
                 for(let c=0; c<GRID_SIZE; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.innerText = grid[r][c];
-                    cell.dataset.r = r; cell.dataset.c = c;
+                    cell.className = 'cell'; cell.innerText = grid[r][c]; cell.dataset.r = r; cell.dataset.c = c;
                     board.appendChild(cell);
                 }
             }
@@ -1106,19 +566,14 @@
             const list = document.getElementById('word-list-container');
             list.innerHTML = '';
             const sortedData = [...currentLessonData].sort((a, b) => a.word.length - b.word.length);
-
             sortedData.forEach(item => {
                 const tag = document.createElement('div');
                 tag.className = 'word-tag'; tag.id = `word-${item.word}`;
-                
                 if (foundWords.includes(item.word)) {
                     tag.classList.add('found');
                     let crownHtml = perfectWords.includes(item.word) ? '<i class="fas fa-crown crown-icon"></i>' : '';
                     tag.innerHTML = `<span>${item.word}</span> ${crownHtml}`;
-                } else {
-                    tag.innerHTML = `<span>${item.word}</span>`;
-                }
-                
+                } else tag.innerHTML = `<span>${item.word}</span>`;
                 tag.onclick = () => { if(foundWords.includes(item.word)) openModal(item.word); };
                 list.appendChild(tag);
             });
@@ -1144,22 +599,17 @@
             const cell = target.closest('.cell');
             if (!cell) return;
 
-            const r = parseInt(cell.dataset.r); const c = parseInt(cell.dataset.c);
+            const r = parseInt(cell.dataset.r), c = parseInt(cell.dataset.c);
 
             if (!startCell) {
-                startCell = cell; cell.classList.add('selected');
-                updatePreviewLine(cell, cell); 
+                startCell = cell; cell.classList.add('selected'); updatePreviewLine(cell, cell);
             } else {
                 if (startCell === cell) { clearSelection(); return; }
-                const startR = parseInt(startCell.dataset.r); const startC = parseInt(startCell.dataset.c);
-                const dr = r - startR; const dc = c - startC;
-                
-                if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) {
-                    checkConnection(startR, startC, r, c);
-                } else {
-                    clearSelection();
-                    startCell = cell; cell.classList.add('selected');
-                    updatePreviewLine(cell, cell);
+                const startR = parseInt(startCell.dataset.r), startC = parseInt(startCell.dataset.c);
+                const dr = r - startR, dc = c - startC;
+                if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) checkConnection(startR, startC, r, c);
+                else {
+                    clearSelection(); startCell = cell; cell.classList.add('selected'); updatePreviewLine(cell, cell);
                 }
             }
         }
@@ -1172,22 +622,18 @@
 
             if (!currentCell) { if (previewLine) previewLine.style.display = 'none'; return; }
 
-            const startR = parseInt(startCell.dataset.r); const startC = parseInt(startCell.dataset.c);
-            const currR = parseInt(currentCell.dataset.r); const currC = parseInt(currentCell.dataset.c);
-            const dr = currR - startR; const dc = currC - startC;
-            
+            const startR = parseInt(startCell.dataset.r), startC = parseInt(startCell.dataset.c);
+            const currR = parseInt(currentCell.dataset.r), currC = parseInt(currentCell.dataset.c);
+            const dr = currR - startR, dc = currC - startC;
             if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) {
                 updatePreviewLine(startCell, currentCell);
-                const stepR = Math.sign(dr); const stepC = Math.sign(dc);
-                const steps = Math.max(Math.abs(dr), Math.abs(dc));
-                
+                const stepR = Math.sign(dr), stepC = Math.sign(dc), steps = Math.max(Math.abs(dr), Math.abs(dc));
                 for (let i = 0; i <= steps; i++) {
-                    let cell = document.querySelector(`.cell[data-r="${startR + i * stepR}"][data-c="${startC + i * stepC}"]`);
+                    let r = startR + i * stepR, c = startC + i * stepC;
+                    let cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
                     if (cell && cell !== startCell) cell.classList.add('path-preview');
                 }
-            } else {
-                if (previewLine) previewLine.style.display = 'none';
-            }
+            } else if (previewLine) previewLine.style.display = 'none';
         }
 
         function clearPathPreview() { document.querySelectorAll('.cell.path-preview').forEach(c => c.classList.remove('path-preview')); }
@@ -1195,36 +641,27 @@
         function updatePreviewLine(cellA, cellB) {
             if (!previewLine) return;
             const boardBox = document.getElementById('grid-container').getBoundingClientRect();
-            const boxA = cellA.getBoundingClientRect(); const boxB = cellB.getBoundingClientRect();
-
-            const x1 = boxA.left + boxA.width/2 - boardBox.left; const y1 = boxA.top + boxA.height/2 - boardBox.top;
-            const x2 = boxB.left + boxB.width/2 - boardBox.left; const y2 = boxB.top + boxB.height/2 - boardBox.top;
-
+            const boxA = cellA.getBoundingClientRect(), boxB = cellB.getBoundingClientRect();
+            const x1 = boxA.left + boxA.width/2 - boardBox.left, y1 = boxA.top + boxA.height/2 - boardBox.top;
+            const x2 = boxB.left + boxB.width/2 - boardBox.left, y2 = boxB.top + boxB.height/2 - boardBox.top;
             const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
-            previewLine.style.height = `${boxA.height * 0.8}px`; 
-            previewLine.style.width = `${distance + boxA.width * 0.8}px`; 
-            previewLine.style.left = `${x1 - (boxA.width * 0.4)}px`;
-            previewLine.style.top = `${y1 - (boxA.height * 0.4)}px`;
-            previewLine.style.transform = `rotate(${angle}deg)`;
-            previewLine.style.display = 'block';
+            previewLine.style.height = `${boxA.height * 0.8}px`; previewLine.style.width = `${distance + boxA.width * 0.8}px`;
+            previewLine.style.left = `${x1 - (boxA.width * 0.4)}px`; previewLine.style.top = `${y1 - (boxA.height * 0.4)}px`;
+            previewLine.style.transform = `rotate(${angle}deg)`; previewLine.style.display = 'block';
         }
 
         function clearSelection() {
             if (startCell) startCell.classList.remove('selected');
-            startCell = null;
-            if (previewLine) previewLine.style.display = 'none';
-            clearPathPreview();
+            startCell = null; if (previewLine) previewLine.style.display = 'none'; clearPathPreview();
         }
 
         function checkConnection(r1, c1, r2, c2) {
-            const dr = Math.sign(r2 - r1); const dc = Math.sign(c2 - c1);
-            const steps = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1));
+            const dr = Math.sign(r2 - r1), dc = Math.sign(c2 - c1), steps = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1));
             let selectedWord = ""; let cellsToMark = [];
-
             for (let i = 0; i <= steps; i++) {
-                let r = r1 + i * dr; let c = c1 + i * dc;
+                let r = r1 + i * dr, c = c1 + i * dc;
                 selectedWord += grid[r][c];
                 cellsToMark.push(document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`));
             }
@@ -1236,35 +673,24 @@
 
             if (matchedWord && !foundWords.includes(matchedWord)) {
                 foundWords.push(matchedWord);
-                const color = earthTonePalette[colorIndex % earthTonePalette.length];
-                colorIndex++;
-                
+                const color = earthTonePalette[colorIndex % earthTonePalette.length]; colorIndex++;
                 cellsToMark.forEach(cell => {
                     if(cell) {
                         cell.classList.remove('selected'); cell.classList.add('found');
                         if (!cell._foundColors) cell._foundColors = [];
                         if (!cell._foundColors.includes(color.bg)) cell._foundColors.push(color.bg);
-
-                        if (cell._foundColors.length === 1) {
-                            cell.style.setProperty('background', cell._foundColors[0], 'important');
-                        } else {
-                            const gradient = `linear-gradient(135deg, ${cell._foundColors.join(', ')})`;
-                            cell.style.setProperty('background', gradient, 'important');
-                        }
-                        cell.style.setProperty('border-color', color.border, 'important');
-                        cell.style.setProperty('color', color.text, 'important');
+                        if (cell._foundColors.length === 1) cell.style.setProperty('background', cell._foundColors[0], 'important');
+                        else cell.style.setProperty('background', `linear-gradient(135deg, ${cell._foundColors.join(', ')})`, 'important');
+                        cell.style.setProperty('border-color', color.border, 'important'); cell.style.setProperty('color', color.text, 'important');
                     }
                 });
                 
                 const tag = document.getElementById(`word-${matchedWord}`);
                 if (tag) {
                     tag.classList.add('found');
-                    let existingCrown = tag.querySelector('.crown-icon') ? '<i class="fas fa-crown crown-icon"></i>' : '';
-                    tag.innerHTML = `<span>${matchedWord}</span> ${existingCrown}`;
-                    tag.style.setProperty('background-color', color.bg, 'important');
-                    tag.style.setProperty('border-color', color.border, 'important');
-                    tag.style.setProperty('color', color.text, 'important');
-                    tag.style.setProperty('box-shadow', `0 4px 0 ${color.border}`, 'important');
+                    tag.innerHTML = `<span>${matchedWord}</span> ${tag.querySelector('.crown-icon') ? '<i class="fas fa-crown crown-icon"></i>' : ''}`;
+                    tag.style.setProperty('background-color', color.bg, 'important'); tag.style.setProperty('border-color', color.border, 'important');
+                    tag.style.setProperty('color', color.text, 'important'); tag.style.setProperty('box-shadow', `0 4px 0 ${color.border}`, 'important');
                 }
                 
                 score += matchedWord.length * 50;
@@ -1278,15 +704,13 @@
                         lessonRecords[currentLessonName] = { score: score, time: timeElapsed };
                     }
                 }
-            } 
+            }
             clearSelection();
         }
 
-        // 🟢 STREAMING_CHUNK:Word Detail Modals and Quizzes
         function openModal(word) {
             currentModalWord = word; currentSentenceIdx = 0; 
             const target = currentLessonData.find(w => w.word === word);
-            
             document.getElementById('modal-word').innerText = word;
             document.getElementById('modal-meaning').innerHTML = target.clue.replace(/\n/g, '<br>');
             document.querySelector('.meaning-box').style.display = 'block';
@@ -1297,140 +721,62 @@
             document.getElementById('btn-ai-sentence').innerHTML = '<i class="fas fa-pencil-alt"></i> 造句';
             
             const btnQuiz = document.getElementById('btn-ai-quiz');
-            if (quizStatus[word]) {
-                btnQuiz.innerHTML = '<i class="fas fa-lock"></i> 測驗結束'; btnQuiz.disabled = true;
-            } else {
-                btnQuiz.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz.disabled = false;
-            }
+            if (quizStatus[word]) { btnQuiz.innerHTML = '<i class="fas fa-lock"></i> 測驗結束'; btnQuiz.disabled = true; } 
+            else { btnQuiz.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz.disabled = false; }
         }
 
         function closeModal() {
             document.getElementById('learning-modal').classList.remove('show');
             currentModalWord = null;
-
             if (foundWords.length === currentLessonData.length && Object.keys(quizStatus).length === currentLessonData.length && !isEndGameTriggered) {
                 isEndGameTriggered = true; 
-                setTimeout(() => showGameOverModal(score, timeElapsed), 500);
+                setTimeout(() => showGameOverModal(score, timeElapsed), 500); 
             }
-        }
-
-        function showGameOverModal(finalScore, finalTime) {
-            const modal = document.getElementById('game-over-modal');
-            document.getElementById('final-score').innerText = finalScore;
-            document.getElementById('final-time').innerText = formatTime(finalTime);
-            
-            if (Object.keys(quizStatus).length === currentLessonData.length) {
-                document.getElementById('essay-btn-container').classList.remove('hidden');
-            }
-            
-            modal.classList.add('show');
-            
-            const canvas = document.getElementById('fireworks');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            const particles = [];
-            const colors = ['#A8B8C2', '#C2B8CC', '#B5C4B1', '#D4BBA5', '#D8D2CB'];
-
-            function createExplosion(x, y) {
-                for (let i = 0; i < 60; i++) {
-                    particles.push({
-                        x: x, y: y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12,
-                        life: 1, color: colors[Math.floor(Math.random() * colors.length)]
-                    });
-                }
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    const p = particles[i];
-                    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.02;
-                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
-                    if (p.life <= 0) particles.splice(i, 1);
-                }
-                if (particles.length > 0) requestAnimationFrame(animate);
-                else ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-
-            createExplosion(canvas.width/2, canvas.height/3);
-            setTimeout(() => createExplosion(canvas.width/3, canvas.height/2), 300);
-            setTimeout(() => createExplosion(canvas.width*2/3, canvas.height/2), 600);
-            animate();
         }
 
         async function showContent(type) {
             const target = currentLessonData.find(w => w.word === currentModalWord);
             if(!target) return;
-
             document.querySelectorAll('.content-box').forEach(b => b.classList.remove('show'));
             const meaningBox = document.querySelector('.meaning-box');
-            if (type === 'quiz') meaningBox.style.display = 'none';
-            else meaningBox.style.display = 'block';
-
+            if (type === 'quiz') meaningBox.style.display = 'none'; else meaningBox.style.display = 'block';
             if(type === 'none') return;
 
-            const btn = document.getElementById(`btn-ai-${type}`);
-            const contentBox = document.getElementById('content-box');
-            const quizBox = document.getElementById('quiz-box');
-            
-            const colorMap = { 'sentence': 'var(--btn-blue)', 'quiz': 'var(--btn-green)' };
-            document.getElementById('modal-color-bar').style.background = colorMap[type];
+            const btn = document.getElementById(`btn-ai-${type}`), contentBox = document.getElementById('content-box'), quizBox = document.getElementById('quiz-box');
+            document.getElementById('modal-color-bar').style.background = { 'sentence': 'var(--btn-blue)', 'quiz': 'var(--btn-green)' }[type];
 
             btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> 思考中`;
             document.querySelectorAll('#modal-buttons button').forEach(b => b.disabled = true);
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 800));
 
             if (type === 'sentence') {
-                const sentence = target.sentences[currentSentenceIdx];
                 contentBox.className = 'content-box box-sentence show';
-                contentBox.innerHTML = `
-                    <div class="font-bold mb-2 opacity-80"><i class="fas fa-quote-left"></i> 例句參考：</div>
-                    <div class="text-lg font-bold">${sentence}</div>
-                `;
+                contentBox.innerHTML = `<div class="font-bold mb-2 opacity-80"><i class="fas fa-quote-left"></i> 例句參考：</div><div class="text-lg font-bold">${target.sentences[currentSentenceIdx]}</div>`;
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i> 下一句';
                 currentSentenceIdx = (currentSentenceIdx + 1) % target.sentences.length;
-            } 
-            else if (type === 'quiz') {
-                quizBox.classList.add('show');
-                document.getElementById('quiz-question').innerText = target.quiz.question;
-                const optsContainer = document.getElementById('quiz-options');
-                optsContainer.innerHTML = '';
+            } else if (type === 'quiz') {
+                quizBox.classList.add('show'); document.getElementById('quiz-question').innerText = target.quiz.question;
+                const optsContainer = document.getElementById('quiz-options'); optsContainer.innerHTML = '';
                 
                 let optionsWithIndex = target.quiz.options.map((opt, i) => ({ text: opt, originalIndex: i }));
-                
                 if (!quizStatus[currentModalWord]) {
-                    for (let i = optionsWithIndex.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
-                    }
+                    for (let i = optionsWithIndex.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]]; }
                     target.quiz.shuffledOptions = optionsWithIndex;
-                } else {
-                    optionsWithIndex = target.quiz.shuffledOptions || optionsWithIndex;
-                }
+                } else optionsWithIndex = target.quiz.shuffledOptions || optionsWithIndex;
 
                 optionsWithIndex.forEach((optObj) => {
-                    const div = document.createElement('div');
-                    div.className = 'quiz-option'; div.innerText = optObj.text;
-                    
+                    const div = document.createElement('div'); div.className = 'quiz-option'; div.innerText = optObj.text;
                     if (quizStatus[currentModalWord]) {
                         div.style.pointerEvents = 'none';
-                        if (optObj.originalIndex === target.quiz.correctIndex) {
-                            div.classList.add('correct'); div.innerHTML += ' <i class="fas fa-check float-right mt-1"></i>';
-                        } else if (quizStatus[currentModalWord] === 'wrong' && optObj.wasSelected) {
-                            div.classList.add('wrong'); div.innerHTML += ' <i class="fas fa-times float-right mt-1"></i>';
-                        }
+                        if (optObj.originalIndex === target.quiz.correctIndex) { div.classList.add('correct'); div.innerHTML += ' <i class="fas fa-check float-right mt-1"></i>'; } 
+                        else if (quizStatus[currentModalWord] === 'wrong' && optObj.wasSelected) { div.classList.add('wrong'); div.innerHTML += ' <i class="fas fa-times float-right mt-1"></i>'; }
                     } else {
                         div.onclick = function() {
-                            const allOpts = document.querySelectorAll('.quiz-option');
-                            allOpts.forEach(o => o.style.pointerEvents = 'none'); 
-                            
+                            document.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none'); 
                             if (optObj.originalIndex === target.quiz.correctIndex) {
-                                quizStatus[currentModalWord] = 'correct';
-                                this.classList.add('correct');
+                                quizStatus[currentModalWord] = 'correct'; this.classList.add('correct');
                                 this.innerHTML += ' <span class="plus-50">+50分!</span> <i class="fas fa-check float-right mt-1"></i>';
                                 score += 50; document.getElementById('score-display').innerText = score;
-                                
                                 if (!perfectWords.includes(currentModalWord)) perfectWords.push(currentModalWord);
                                 const wordTag = document.getElementById(`word-${currentModalWord}`);
                                 if (wordTag && !wordTag.querySelector('.crown-icon')) wordTag.innerHTML += '<i class="fas fa-crown crown-icon"></i>';
@@ -1438,309 +784,233 @@
                                 quizStatus[currentModalWord] = 'wrong'; optObj.wasSelected = true; 
                                 if (!failedWords.includes(currentModalWord)) failedWords.push(currentModalWord);
                                 this.classList.add('wrong'); this.innerHTML += ' <i class="fas fa-times float-right mt-1"></i>';
-                                const correctDiv = Array.from(allOpts).find(el => el.innerText.includes(target.quiz.options[target.quiz.correctIndex]));
+                                const correctDiv = Array.from(document.querySelectorAll('.quiz-option')).find(el => el.innerText.includes(target.quiz.options[target.quiz.correctIndex]));
                                 if(correctDiv) correctDiv.classList.add('correct');
                             }
                             
                             const quizBtn = document.getElementById('btn-ai-quiz');
                             quizBtn.innerHTML = '<i class="fas fa-lock"></i> 測驗結束'; quizBtn.disabled = true;
-                            
-                            if (Object.keys(quizStatus).length === currentLessonData.length) {
-                                document.getElementById('essay-btn-container').classList.remove('hidden');
-                            }
+                            if (Object.keys(quizStatus).length === currentLessonData.length) document.getElementById('essay-btn-container').classList.remove('hidden');
                         };
                     }
                     optsContainer.appendChild(div);
                 });
             }
-
-            const btnSentence = document.getElementById('btn-ai-sentence');
-            const btnQuiz = document.getElementById('btn-ai-quiz');
+            const btnSentence = document.getElementById('btn-ai-sentence'), btnQuiz2 = document.getElementById('btn-ai-quiz');
             btnSentence.disabled = false;
-            if (type === 'sentence') btnSentence.innerHTML = '<i class="fas fa-sync-alt"></i> 下一句';
-            else btnSentence.innerHTML = '<i class="fas fa-pencil-alt"></i> 造句';
-
-            if (quizStatus[currentModalWord]) {
-                btnQuiz.innerHTML = '<i class="fas fa-lock"></i> 測驗結束'; btnQuiz.disabled = true;
-            } else {
-                btnQuiz.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz.disabled = false;
-            }
+            btnSentence.innerHTML = type === 'sentence' ? '<i class="fas fa-sync-alt"></i> 下一句' : '<i class="fas fa-pencil-alt"></i> 造句';
+            if (quizStatus[currentModalWord]) { btnQuiz2.innerHTML = '<i class="fas fa-lock"></i> 測驗結束'; btnQuiz2.disabled = true; } 
+            else { btnQuiz2.innerHTML = '<i class="fas fa-question-circle"></i> 測驗'; btnQuiz2.disabled = false; }
         }
 
-        // 🟢 STREAMING_CHUNK:AI Fill-in-the-blank API and Logic
-        async function callGeminiAPI(promptText) {
-            const url = GAS_API_URL; 
-            const delays = [2000, 5000, 16000]; 
-            
-            for (let i = 0; i <= delays.length; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'generate', prompt: promptText })
-                    });
-                    if (!response.ok) throw new Error(`連線到 GAS 失敗 (HTTP ${response.status})`);
-                    
-                    const data = await response.json();
-                    if (data.error) {
-                        console.error("[GAS/API 錯誤詳情]:", data.error);
-                        throw new Error(`AI 生成失敗`);
-                    }
-                    return data.text;
-                } catch (error) {
-                    if (i === delays.length) throw error;
-                    await new Promise(resolve => setTimeout(resolve, delays[i]));
-                }
-            }
-        }
-
-        function saveStoryToBackend(unitName, text) {
-            try {
-                fetch(GAS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'save', unitName: unitName, story: text })
-                }).catch(e => console.log("備份快取失敗", e));
-            } catch (e) {}
+        async function callGeminiAPI(promptText, unitName) {
+            const response = await fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ prompt: promptText, unitName: unitName }) });
+            if (!response.ok) throw new Error(`連線失敗 HTTP ${response.status}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            return data.text;
         }
 
         async function startFillInTheBlankTest() {
-            if (isFillBlankAllCorrect) {
-                alert("👍 您已經完美通過本單元的短文測驗囉！");
-                return;
-            }
-            
             const modal = document.getElementById('fill-blank-modal');
             const loadingBox = document.getElementById('fb-loading');
-            const contentBox = document.getElementById('fb-content');
+            const colArticle = document.getElementById('fb-article-col');
+            const colWords = document.getElementById('fb-words-col');
             
-            loadingBox.innerHTML = `
-                <i class="fas fa-pen-fancy text-5xl mb-6 text-purple-400 animate-pulse"></i>
-                <p class="text-xl font-bold text-gray-600">AI 老師正在量身打造專屬短文<span class="loading-dots"></span></p>
-                <p class="text-sm text-gray-400 mt-2">(若為首次生成約需 5~10 秒)</p>
-            `;
+            loadingBox.innerHTML = `<i class="fas fa-pen-fancy text-5xl mb-4 text-purple-400 animate-pulse"></i><p class="text-xl font-bold text-gray-600">正在準備專屬短文測驗<span class="loading-dots"></span></p><p class="text-sm text-gray-400 mt-2">尋找快取文章或呼叫 AI 中</p>`;
             
             modal.classList.add('show');
             loadingBox.classList.remove('hidden');
-            contentBox.classList.add('hidden');
-            document.getElementById('submit-answers-btn').classList.add('hidden');
-            document.getElementById('fb-hint-text').classList.remove('hidden');
+            colArticle.classList.add('hidden');
+            colWords.classList.add('hidden');
             
             selectedTouchWord = null; 
-            essayGenerationCount++;
-            
-            const allWords = currentLessonData.map(w => w.word);
-            let wordsToUse = [];
+            document.getElementById('check-ans-btn').classList.add('hidden');
+
+            let targetCount = Math.min(7, currentLessonData.length);
+            let allWords = currentLessonData.map(w => w.word);
+            let cachedList = cachedStories[currentLessonName] || [];
             let aiText = "";
-            let isCached = false;
 
-            const cachedStories = allCachedStories[currentLessonName] || [];
-            
-            if (cachedStories.length > 0) {
-                aiText = cachedStories[Math.floor(Math.random() * cachedStories.length)];
-                wordsToUse = allWords.filter(w => aiText.includes(w));
-                
-                if (wordsToUse.length >= 2) {
-                    isCached = true;
-                    // 確保最多 7 個
-                    if (wordsToUse.length > 7) wordsToUse = wordsToUse.sort(() => 0.5 - Math.random()).slice(0, 7);
-                }
-            }
-
-            if (!isCached) {
-                let targetCount = Math.floor(Math.random() * 3) + 5; 
-                targetCount = Math.min(targetCount, 7); // 強制不超過 7 個
-                targetCount = Math.min(targetCount, currentLessonData.length); 
-
-                if (allWords.length <= 5) {
-                    wordsToUse = [...allWords];
-                } else if (essayGenerationCount === 1) {
-                    let shuffledFailed = [...failedWords].sort(() => 0.5 - Math.random());
-                    wordsToUse = shuffledFailed.slice(0, targetCount);
-                    if (wordsToUse.length < targetCount) {
-                        let remainingWords = allWords.filter(w => !wordsToUse.includes(w)).sort(() => 0.5 - Math.random());
-                        wordsToUse = wordsToUse.concat(remainingWords.slice(0, targetCount - wordsToUse.length));
-                    }
-                } else {
-                    wordsToUse = [...allWords].sort(() => 0.5 - Math.random()).slice(0, targetCount);
-                }
-
-                const wordsList = wordsToUse.join('、');
-                // 🚀 AI 指令：嚴格要求每個字只能出現一次
-                const prompt = `請創作一篇大約 350 字以內的短文，內容設定為適合國小中高年級學生的日常校園生活、溫馨家庭或有趣小探險。文章結構要求最多分四個段落。
-請務必在文章中，自然且通順地使用以下語詞：${wordsList}。
-要求：
-1. 每個指定的語詞在文章中「嚴格限制只能出現一次」，絕對不可以重複。
-2. 故事必須有完整結尾。
-3. 絕對不可以有標題。
-4. 只要寫出純文字故事即可，不需要加任何括號或標記符號。`;
-
-                try {
-                    aiText = await callGeminiAPI(prompt);
-                    aiText = aiText.replace(/[{}]/g, ''); 
-                    
-                    let hasWords = wordsToUse.some(w => aiText.includes(w));
-                    if (hasWords) {
-                        saveStoryToBackend(currentLessonName, aiText);
-                        if (!allCachedStories[currentLessonName]) allCachedStories[currentLessonName] = [];
-                        if (allCachedStories[currentLessonName].length < 10) allCachedStories[currentLessonName].push(aiText);
-                    } else {
-                        throw new Error("AI 生成文章失敗，內容完全沒有包含任何目標語詞");
-                    }
-                } catch (err) {
-                    console.error("AI 填空生成失敗", err);
-                    loadingBox.innerHTML = `
-                        <i class="fas fa-exclamation-triangle text-5xl mb-6 text-red-400"></i>
-                        <p class="text-xl font-bold text-red-600 mb-2">網路不穩或生成失敗</p>
-                        <p class="text-sm text-gray-500">請關閉視窗後重試。</p>
-                    `;
-                    return; 
-                }
+            if (cachedList.length >= 10) {
+                // 快取已滿 10 篇，直接隨機抽
+                aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
+                await new Promise(resolve => setTimeout(resolve, 800)); // 假裝思考一下
             } else {
-                await new Promise(resolve => setTimeout(resolve, 800));
-            }
+                // 快取不足 10 篇，呼叫 API，後端會自動補檔
+                try {
+                    let promptWords = allWords.join('、');
+                    const prompt = `請創作一篇大約 250 到 350 字的短文，最多 4 段，適合國小中高年級學生閱讀，主題可以是校園生活、溫馨家庭或有趣探險。
+請從以下語詞中「隨機挑選 5 到 7 個」並自然地融入文章中：${promptWords}。
+(如果該列表少於5個詞，則必須全部使用)。
+【嚴格規定】：每個挑選的語詞在文章中「嚴格限制只能出現一次」，絕對不可以重複。只要寫出純文字文章即可，不需要任何標籤或大括號。`;
 
-            // 🟢 STREAMING_CHUNK:Processing text and rendering fill-in-the-blank UI
-            let processedText = aiText;
-            let usedWordsInEssay = []; 
+                    aiText = await callGeminiAPI(prompt, currentLessonName);
 
-            // 🚀 正則替換邏輯：先依照長度排序，再使用安全正則將「所有」出現的該詞都換成空格，避免送分
-            wordsToUse.sort((a, b) => b.length - a.length);
+                    // 同步寫入前端快取，讓下一次可以立刻用
+                    if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
+                    cachedStories[currentLessonName].push(aiText);
 
-            wordsToUse.forEach(w => {
-                // 使用負向預查 (?![^{]*}) 確保不會重複替換已經被 {} 包住的文字
-                let regex = new RegExp(w + '(?![^{]*})', 'g');
-                if (regex.test(processedText)) {
-                    processedText = processedText.replace(regex, `{${w}}`);
-                    usedWordsInEssay.push(w);
+                } catch (err) {
+                    console.warn("API 生成失敗:", err);
+                    if (cachedList.length > 0) {
+                        // API 失敗但只要有快取，就拿出來頂替
+                        aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
+                        console.log("使用備用快取文章成功");
+                    } else {
+                        // 真的什麼都沒有才報錯
+                        let errTitle = "網路不穩或生成失敗";
+                        let errDesc = "請關閉視窗後重試。";
+                        if (String(err).includes("quota") || String(err).includes("exceeded")) {
+                            errTitle = "AI 老師太忙碌啦！";
+                            errDesc = "免費額度已達每分鐘上限，請等待約 1 分鐘後再重試。<br><span style='color:#999; font-size:0.85rem;'>(若在課堂給全班使用，建議老師至 AI Studio 解除限制)</span>";
+                        }
+                        loadingBox.innerHTML = `<i class="fas fa-exclamation-triangle text-5xl mb-6 text-red-400"></i><p class="text-xl font-bold text-red-600 mb-2">${errTitle}</p><p class="text-sm text-gray-500">${errDesc}</p>`;
+                        return; 
+                    }
                 }
-            });
-
-            if (usedWordsInEssay.length === 0) {
-                loadingBox.innerHTML = `<p class="text-xl font-bold text-red-600">抱歉，程式解析填空失敗，請重試。</p>`;
-                return;
             }
 
             const articleContainer = document.getElementById('article-container');
             const bankContainer = document.getElementById('word-bank-container');
             articleContainer.innerHTML = ''; bankContainer.innerHTML = '';
 
-            const parts = processedText.split(/\{(.*?)\}/g);
-            let dropzoneHtml = '';
+            let displayHtml = aiText.replace(/\n/g, '<br>');
             let wordsToBank = [];
+            let sortedWords = [...allWords].sort((a,b) => b.length - a.length);
 
-            parts.forEach((part, index) => {
-                if (index % 2 === 0) {
-                    dropzoneHtml += part.replace(/\n/g, '<br><br>');
-                } else {
-                    let cleanWord = part.trim();
-                    if (cleanWord) {
-                        dropzoneHtml += `<span class="dropzone" data-answer="${cleanWord}"></span>`;
-                        wordsToBank.push(cleanWord);
-                    }
+            // 前端強制挖空 (最多挖 7 個不同的詞)
+            let matchCount = 0;
+            sortedWords.forEach(w => {
+                if (matchCount >= 7) return; 
+                if (displayHtml.includes(w)) {
+                    let regex = new RegExp(w, 'g');
+                    displayHtml = displayHtml.replace(regex, `<span class="dropzone" data-answer="${w}"></span>`);
+                    wordsToBank.push(w);
+                    matchCount++;
                 }
             });
 
-            articleContainer.innerHTML = dropzoneHtml;
+            if (wordsToBank.length === 0) {
+                loadingBox.innerHTML = `<i class="fas fa-exclamation-triangle text-5xl mb-4 text-red-400"></i><p class="text-lg font-bold text-red-600">生成文章未包含目標語詞，請關閉重試。</p>`;
+                return;
+            }
+
+            articleContainer.innerHTML = displayHtml;
 
             wordsToBank.sort(() => Math.random() - 0.5);
             wordsToBank.forEach((w, i) => {
-                const wDiv = document.createElement('div');
-                wDiv.className = 'drag-word'; wDiv.innerText = w;
-                wDiv.id = 'drag-word-' + i;
-                
+                const wDiv = document.createElement('div'); wDiv.className = 'drag-word'; wDiv.innerText = w; wDiv.draggable = true; wDiv.id = 'drag-word-' + i;
+                wDiv.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', w); e.dataTransfer.setData('source-id', wDiv.id); });
                 wDiv.addEventListener('click', () => {
                     document.querySelectorAll('.drag-word').forEach(el => el.classList.remove('selected-for-touch'));
-                    wDiv.classList.add('selected-for-touch');
-                    selectedTouchWord = { word: w, id: wDiv.id, el: wDiv };
+                    wDiv.classList.add('selected-for-touch'); selectedTouchWord = { word: w, id: wDiv.id, el: wDiv };
                 });
                 bankContainer.appendChild(wDiv);
             });
 
             document.querySelectorAll('.dropzone').forEach(zone => {
+                zone.addEventListener('dragover', e => { e.preventDefault(); if (!zone.classList.contains('correct')) zone.classList.add('active-target'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('active-target'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault(); zone.classList.remove('active-target'); if (zone.classList.contains('correct')) return;
+                    handleFillBlank(zone, e.dataTransfer.getData('text/plain'), document.getElementById(e.dataTransfer.getData('source-id')));
+                });
                 zone.addEventListener('click', () => {
                     if (zone.classList.contains('correct')) return;
-                    
                     if (zone.classList.contains('filled')) {
-                        const currentWord = zone.innerText;
-                        zone.innerText = ''; zone.classList.remove('filled', 'wrong');
-                        delete zone.dataset.filledId;
-                        
-                        const sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === currentWord && el.classList.contains('used'));
+                        let prevWord = zone.innerText; zone.innerText = ''; zone.classList.remove('filled', 'wrong');
+                        let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === prevWord);
                         if (sourceEl) sourceEl.classList.remove('used');
-                        checkAllFilled();
-                        return;
+                        checkAllZonesFilled();
+                    } else if (selectedTouchWord) {
+                        handleFillBlank(zone, selectedTouchWord.word, selectedTouchWord.el);
+                        document.querySelectorAll('.drag-word').forEach(el => el.classList.remove('selected-for-touch'));
+                        selectedTouchWord = null;
                     }
-                    
-                    if (!selectedTouchWord) return;
-                    
-                    zone.innerText = selectedTouchWord.word;
-                    zone.classList.add('filled');
-                    zone.classList.remove('wrong');
-                    zone.dataset.filledId = selectedTouchWord.id; 
-                    selectedTouchWord.el.classList.add('used');
-                    
-                    document.querySelectorAll('.drag-word').forEach(el => el.classList.remove('selected-for-touch'));
-                    selectedTouchWord = null;
-                    checkAllFilled();
                 });
             });
 
-            loadingBox.classList.add('hidden');
-            contentBox.classList.remove('hidden');
+            loadingBox.classList.add('hidden'); colArticle.classList.remove('hidden'); colWords.classList.remove('hidden');
         }
 
-        function checkAllFilled() {
-            const totalZones = document.querySelectorAll('.dropzone').length;
-            const filledZones = document.querySelectorAll('.dropzone.filled, .dropzone.correct').length;
-            const btn = document.getElementById('submit-answers-btn');
-            const hint = document.getElementById('fb-hint-text');
-            
-            if (totalZones === filledZones) {
-                btn.classList.remove('hidden'); hint.classList.add('hidden');
-            } else {
-                btn.classList.add('hidden'); hint.classList.remove('hidden');
+        function handleFillBlank(zone, word, sourceEl) {
+            if (zone.classList.contains('filled')) {
+                let prevEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
+                if (prevEl) prevEl.classList.remove('used');
             }
+            zone.innerText = word; zone.classList.add('filled'); zone.classList.remove('wrong');
+            if (sourceEl) sourceEl.classList.add('used');
+            checkAllZonesFilled();
         }
 
-        function submitBlankAnswers() {
-            const zones = document.querySelectorAll('.dropzone');
+        function checkAllZonesFilled() {
+            let allFilled = true;
+            document.querySelectorAll('.dropzone').forEach(z => { if (!z.innerText.trim()) allFilled = false; });
+            if (allFilled) document.getElementById('check-ans-btn').classList.remove('hidden');
+            else document.getElementById('check-ans-btn').classList.add('hidden');
+        }
+
+        function checkAllAnswers() {
             let allCorrect = true;
-
-            zones.forEach(zone => {
-                if (zone.classList.contains('correct')) return; 
-
-                const answer = zone.dataset.answer;
-                const filled = zone.innerText;
-
-                if (filled === answer) {
-                    zone.classList.remove('filled'); zone.classList.add('correct');
-                } else {
-                    allCorrect = false;
-                    zone.classList.add('wrong');
-                    const sourceId = zone.dataset.filledId;
-                    
+            document.querySelectorAll('.dropzone').forEach(zone => {
+                if (zone.innerText === zone.dataset.answer) { zone.classList.remove('filled', 'wrong'); zone.classList.add('correct'); } 
+                else {
+                    allCorrect = false; zone.classList.add('wrong');
                     setTimeout(() => {
-                        zone.innerText = ''; zone.classList.remove('filled', 'wrong'); delete zone.dataset.filledId;
-                        if (sourceId) document.getElementById(sourceId).classList.remove('used');
-                        checkAllFilled();
+                        if (!zone.classList.contains('correct')) {
+                            let sourceEl = Array.from(document.querySelectorAll('.drag-word')).find(el => el.innerText === zone.innerText);
+                            zone.innerText = ''; zone.classList.remove('filled', 'wrong');
+                            if (sourceEl) sourceEl.classList.remove('used');
+                            checkAllZonesFilled(); 
+                        }
                     }, 800);
                 }
             });
 
             if (allCorrect) {
-                document.getElementById('submit-answers-btn').classList.add('hidden');
-                document.getElementById('fb-hint-text').innerText = "🎉 完美通關！";
-                document.getElementById('fb-hint-text').classList.remove('hidden');
-                document.getElementById('fb-hint-text').style.color = "#2E7D32";
-                document.getElementById('fb-hint-text').style.fontSize = "1.2rem";
-                isFillBlankAllCorrect = true; 
-                
-                score += 200; 
-                document.getElementById('score-display').innerText = score;
-                
-                setTimeout(() => { document.getElementById('fill-blank-modal').classList.remove('show'); }, 2000);
+                document.getElementById('check-ans-btn').classList.add('hidden');
+                setTimeout(() => { document.getElementById('fill-blank-modal').classList.remove('show'); showWinEffect(); }, 800);
             }
+        }
+
+        function showGameOverModal(finalScore, finalTime) {
+            const modal = document.getElementById('game-over-modal');
+            document.getElementById('final-score').innerText = finalScore;
+            document.getElementById('final-time').innerText = formatTime(finalTime);
+            modal.classList.add('show');
+            showWinEffect();
+        }
+
+        function showWinEffect() {
+            const canvas = document.getElementById('fireworks'); const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const particles = [], colors = ['#A8B8C2', '#C2B8CC', '#B5C4B1', '#D4BBA5', '#D8D2CB'];
+
+            function createExplosion(x, y) {
+                for (let i = 0; i < 60; i++) particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 1, color: colors[Math.floor(Math.random() * colors.length)] });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.02;
+                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+                    if (p.life <= 0) particles.splice(i, 1);
+                }
+                if (particles.length > 0) requestAnimationFrame(animate); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            createExplosion(canvas.width/2, canvas.height/3); setTimeout(() => createExplosion(canvas.width/3, canvas.height/2), 300); setTimeout(() => createExplosion(canvas.width*2/3, canvas.height/2), 600);
+            animate();
+        }
+
+        function getFallbackData() {
+            return [
+                { unit: "展示單元", word: "守株待兔", clue: "比喻拘泥守成，不知變通。", origin: "《韓非子》", sentences: ["不能守株待兔。"], quiz: { question: "農夫得到了什麼？", options: ["肉", "田地荒蕪", "技巧"], correctIndex: 1 } },
+                { unit: "展示單元", word: "狐假虎威", clue: "比喻藉著別人的威勢來欺壓人。", origin: "《戰國策》", sentences: ["別狐假虎威。"], quiz: { question: "動物怕誰？", options: ["狐狸", "老虎", "大象"], correctIndex: 1 } },
+                { unit: "展示單元", word: "馬到成功", clue: "比喻事情順利。", origin: "無名氏", sentences: ["祝馬到成功。"], quiz: { question: "適合用在？", options: ["祝賀", "跑步", "失敗"], correctIndex: 0 } }
+            ];
         }
     </script>
 </body>
