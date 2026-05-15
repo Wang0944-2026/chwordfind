@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v3.2</title>
+    <title>國語找字遊戲 v3.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -161,7 +161,7 @@
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 3.2 (v3.2)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 3.3 (v3.3)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -555,13 +555,27 @@
             const extraChars = "的是了我不人在他有這一個上們來到時大地為子中你說生國年那就和要她出也得裡後自以會家可下而過天去能對小多然於心學麼起都把好太水作";
             const fillerChars = uniqueChars.join('') + extraChars;
 
-            grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
             placedWordsInfo = []; foundWords = []; perfectWords = []; quizStatus = {}; failedWords = []; 
             isEndGameTriggered = false; score = 0; colorIndex = 0; 
             document.getElementById('essay-btn-container').classList.add('hidden');
             
-            let wordsToPlace = [...currentLessonData].sort(() => 0.5 - Math.random());
-            wordsToPlace.forEach(item => placeWord(item.word));
+            // 👉 修正：加入防呆迴圈，確保所有字詞100%成功塞入棋盤，若塞不下則擴大棋盤重試
+            let boardGenerated = false;
+            while (!boardGenerated) {
+                grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
+                placedWordsInfo = [];
+                let wordsToPlace = [...currentLessonData].sort(() => 0.5 - Math.random());
+                boardGenerated = true;
+                
+                for (let item of wordsToPlace) {
+                    if (!placeWord(item.word)) {
+                        boardGenerated = false;
+                        GRID_SIZE++; // 若發生擁擠無法放置，動態擴大1格棋盤並重試
+                        if (GRID_SIZE > 16) boardGenerated = true; // 防呆上限，避免無窮迴圈
+                        break;
+                    }
+                }
+            }
             
             for(let r=0; r<GRID_SIZE; r++) {
                 for(let c=0; c<GRID_SIZE; c++) {
@@ -599,6 +613,37 @@
                 if(grid[nr][nc] !== '' && grid[nr][nc] !== word[i]) return false;
             }
             return true;
+        }
+
+        function placeWord(word) {
+            const dirs = [ {dr:0, dc:1}, {dr:1, dc:0}, {dr:1, dc:1} ];
+            // 階段一：隨機抽樣尋找空位 (效率快)
+            for(let attempt=0; attempt<100; attempt++) {
+                const dir = dirs[Math.floor(Math.random() * dirs.length)];
+                const r = Math.floor(Math.random() * GRID_SIZE);
+                const c = Math.floor(Math.random() * GRID_SIZE);
+                if (canPlace(word, r, c, dir.dr, dir.dc)) {
+                    for(let i=0; i<word.length; i++) grid[r + i*dir.dr][c + i*dir.dc] = word[i];
+                    placedWordsInfo.push({ word: word, start: {r, c}, end: {r: r + (word.length-1)*dir.dr, c: c + (word.length-1)*dir.dc} });
+                    return true;
+                }
+            }
+            
+            // 階段二：如果運氣不好隨機100次都失敗，改用「地毯式搜索」確保找到空位
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    for (let dir of dirs) {
+                        if (canPlace(word, r, c, dir.dr, dir.dc)) {
+                            for(let i=0; i<word.length; i++) grid[r + i*dir.dr][c + i*dir.dc] = word[i];
+                            placedWordsInfo.push({ word: word, start: {r, c}, end: {r: r + (word.length-1)*dir.dr, c: c + (word.length-1)*dir.dc} });
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // 階段三：真的完全沒有空位可以放了，回報失敗
+            return false;
         }
 
         function renderBoard() {
