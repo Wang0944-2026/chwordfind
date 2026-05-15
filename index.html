@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v3.0</title>
+    <title>國語找字遊戲 v3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -161,7 +161,7 @@
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 3.0 (v3.0)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 3.1 (v3.1)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -843,10 +843,12 @@
         }
 
         async function callGeminiAPI(allWordsStr, unitName) {
+            // 👉 修正：後端 doPost 期待的是 prompt，並且讓 AI 產生的文章更符合要求
+            const promptText = `請用以下語詞寫一篇適合閱讀的短文(約150字)：${allWordsStr}。請確保文章通順且語意自然，適合做為國語文填空測驗。`;
             const response = await fetch(GAS_API_URL, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                body: JSON.stringify({ allWordsStr: allWordsStr, unitName: unitName }) 
+                body: JSON.stringify({ prompt: promptText, unitName: unitName }) 
             });
             if (!response.ok) throw new Error(`連線失敗 HTTP ${response.status}`);
             const data = await response.json();
@@ -876,21 +878,28 @@
             let allWords = currentLessonData.map(w => w.word);
             let cachedList = cachedStories[currentLessonName] || [];
             let aiText = "";
+            let allWordsStr = allWords.join('、');
 
+            // 👉 邏輯更新：確保 K2~T2 滿10篇。若小於10篇(被刪除)，使用現有文章讓玩家秒進遊戲，並於背景呼叫AI補齊。
             if (cachedList.length >= 10) {
                 aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
                 await new Promise(resolve => setTimeout(resolve, 800)); 
             } else {
-                try {
-                    let allWordsStr = allWords.join('、');
-                    aiText = await callGeminiAPI(allWordsStr, currentLessonName);
-                    if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
-                    cachedStories[currentLessonName].push(aiText); 
-                } catch (err) {
-                    console.warn("API 生成失敗，降級使用快取:", err);
-                    if (cachedList.length > 0) {
-                        aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
-                    } else {
+                if (cachedList.length > 0) {
+                    // 有庫存就先抽一篇玩，不用等AI
+                    aiText = cachedList[Math.floor(Math.random() * cachedList.length)];
+                    await new Promise(resolve => setTimeout(resolve, 800)); 
+                    // 背景偷偷呼叫 Gemini 幫忙補齊缺少的文章
+                    callGeminiAPI(allWordsStr, currentLessonName).catch(e => console.warn("背景補充短文失敗:", e));
+                } else {
+                    // 完全沒文章，只能等 AI 生成
+                    try {
+                        aiText = await callGeminiAPI(allWordsStr, currentLessonName);
+                        if (!cachedStories[currentLessonName]) cachedStories[currentLessonName] = [];
+                        cachedStories[currentLessonName].push(aiText); 
+                    } catch (err) {
+                        console.warn("API 生成失敗，降級使用快取:", err);
+                        // 異常處理...
                         let errTitle = "網路不穩或生成失敗";
                         let errDesc = "目前沒有足夠的快取文章，請稍候重試。";
                         if (String(err).includes("quota") || String(err).includes("exceeded") || String(err).includes("limit")) {
