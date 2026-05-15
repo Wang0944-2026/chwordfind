@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國語找字遊戲 v3.3</title>
+    <title>國語找字遊戲 v3.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -51,23 +51,27 @@
             touch-action: manipulation;
             user-select: none;
             color: var(--text-main);
+            height: 100dvh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
         }
 
         .footer-version { position: fixed; bottom: 10px; right: 15px; font-size: 0.85rem; color: var(--text-light); z-index: 9999; pointer-events: none; font-weight: bold; }
 
-        #lobby-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #lobby-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .lobby-panel { background: var(--panel-bg); padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(105, 101, 97, 0.08); max-width: 800px; width: 100%; text-align: center; border-top: 8px solid var(--grid-border); }
         .lesson-btn { background: var(--lobby-btn-bg); color: var(--text-main); border: 3px solid var(--lobby-btn-border); border-radius: 20px; padding: 20px; font-size: 1.25rem; font-weight: bold; transition: all 0.2s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 6px 0 var(--lobby-btn-border); }
         .lesson-btn:hover { background: var(--lobby-btn-hover); transform: translateY(-2px); box-shadow: 0 8px 0 var(--lobby-btn-border); }
         .lesson-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--lobby-btn-border); }
 
-        #game-container { max-width: 1200px; width: 100%; margin: 0 auto; min-height: 100vh; display: none; flex-direction: column; align-items: center; padding: 20px; }
-        .header-panel { background: var(--panel-bg); padding: 12px 25px; border-radius: 50px; box-shadow: 0 6px 0 var(--panel-border); display: flex; gap: 20px; align-items: center; margin-bottom: 25px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        #game-container { max-width: 1200px; width: 100%; margin: 0 auto; height: 100dvh; display: none; flex-direction: column; align-items: center; padding: 15px; overflow: hidden; }
+        .header-panel { background: var(--panel-bg); padding: 12px 25px; border-radius: 50px; box-shadow: 0 6px 0 var(--panel-border); display: flex; gap: 20px; align-items: center; margin-bottom: 15px; width: 100%; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
         .back-btn { background: var(--bg-base); color: var(--text-main); border: 2px solid var(--panel-border); padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .back-btn:hover { background: var(--lobby-btn-hover); }
 
-        .word-search-grid { display: grid; gap: 6px; background-color: var(--panel-bg); padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(105, 101, 97, 0.08); border: 8px solid var(--grid-border); position: relative; touch-action: none; margin-bottom: 20px; z-index: 1; }
-        .cell { width: clamp(35px, 8vmin, 50px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background-color: var(--cell-bg); border-radius: 12px; font-weight: bold; font-size: clamp(18px, 4vmin, 24px); color: var(--text-main); cursor: pointer; transition: all 0.15s ease; border: 2px solid var(--cell-border); box-shadow: 0 3px 0 var(--panel-border); z-index: 2; }
+        .word-search-grid { display: grid; gap: 4px; background-color: var(--panel-bg); padding: 12px; border-radius: 20px; box-shadow: 0 10px 25px rgba(105, 101, 97, 0.08); border: 8px solid var(--grid-border); position: relative; touch-action: none; z-index: 1; width: 100%; height: 100%; }
+        .cell { width: 100%; height: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background-color: var(--cell-bg); border-radius: 10px; font-weight: bold; font-size: var(--cell-font-size, 20px); color: var(--text-main); cursor: pointer; transition: all 0.15s ease; border: 2px solid var(--cell-border); box-shadow: 0 3px 0 var(--panel-border); z-index: 2; }
         .cell:hover:not(.found):not(.selected) { background-color: var(--cell-hover); transform: translateY(-2px); }
         .cell.selected { background-color: var(--cell-selected-bg); border-color: var(--cell-selected-border); color: var(--cell-selected-text); transform: scale(1.1) !important; box-shadow: 0 4px 0 var(--cell-selected-border) !important; filter: brightness(0.95); z-index: 10; }
         .cell.path-preview { transform: scale(1.08) translateY(-2px); background-color: var(--cell-hover); border-color: var(--cell-selected-border); z-index: 8; box-shadow: 0 4px 0 var(--panel-border); }
@@ -161,7 +165,7 @@
 </head>
 <body>
 
-    <div class="footer-version">大榮老師製作 © 2026 | Version 3.3 (v3.3)</div>
+    <div class="footer-version">大榮老師製作 © 2026 | Version 3.4 (v3.4)</div>
 
     <div id="init-loader">
         <i class="fas fa-circle-notch fa-spin text-5xl mb-4" style="color: var(--btn-blue)"></i>
@@ -213,12 +217,12 @@
             </p>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-8 w-full justify-center items-stretch" id="main-content-area">
-            <div class="flex flex-col items-center relative shrink-0">
+        <div class="flex flex-col md:flex-row gap-4 md:gap-8 w-full h-full flex-1 min-h-0" id="main-content-area">
+            <div id="grid-wrapper" class="flex justify-center items-center shrink-0 w-full md:w-auto h-auto md:h-full">
                 <div id="grid-container" class="word-search-grid"></div>
             </div>
 
-            <div id="right-panel" class="list-panel-box bg-white p-6 rounded-3xl border-4" style="border-color: var(--panel-border); flex: 1; min-width: 300px;">
+            <div id="right-panel" class="list-panel-box bg-white p-4 md:p-6 rounded-3xl border-4 flex-1 min-h-0 w-full" style="border-color: var(--panel-border);">
                 <div class="flex justify-between items-end mb-4 border-b-2 pb-2 shrink-0" style="border-color: var(--bg-base);">
                     <h2 class="text-xl font-bold"><i class="fas fa-list-ul"></i> 尋找目標</h2>
                     <span class="text-sm font-bold px-3 py-1 rounded-full" style="background: var(--bg-base); color: var(--text-light);">
@@ -539,10 +543,46 @@
         }
 
         function syncPanelHeight() {
-            const gridEl = document.getElementById('grid-container');
+            const mainArea = document.getElementById('main-content-area');
+            const gridWrapper = document.getElementById('grid-wrapper');
+            const gridContainer = document.getElementById('grid-container');
             const rightPanel = document.getElementById('right-panel');
-            if (window.innerWidth >= 768) rightPanel.style.maxHeight = gridEl.offsetHeight + 'px';
-            else rightPanel.style.maxHeight = 'none';
+            if (!mainArea || !gridContainer || !rightPanel || !gridWrapper) return;
+
+            const isDesktop = window.innerWidth >= 768;
+            
+            if (isDesktop) {
+                // 電腦與平板橫向：以高度為主，但不超過螢幕 65% 寬度
+                const availableHeight = mainArea.clientHeight;
+                const availableWidth = mainArea.clientWidth * 0.65; 
+                const size = Math.min(availableHeight, availableWidth);
+                
+                gridWrapper.style.width = size + 'px';
+                gridWrapper.style.height = size + 'px';
+                rightPanel.style.maxHeight = size + 'px';
+            } else {
+                // 手機直向：以寬度為主，但高度最多只允許佔用可用空間的 55%
+                const availableWidth = mainArea.clientWidth;
+                const maxGridHeight = mainArea.clientHeight * 0.55; 
+                const size = Math.min(availableWidth, maxGridHeight);
+                
+                gridWrapper.style.width = size + 'px';
+                gridWrapper.style.height = size + 'px';
+                rightPanel.style.maxHeight = 'none';
+            }
+
+            // 動態計算格子的字體大小，避免破版
+            if (GRID_SIZE) {
+                const innerSize = gridContainer.clientWidth - 24; 
+                const cellSize = innerSize / GRID_SIZE;
+                document.documentElement.style.setProperty('--cell-font-size', Math.max(14, cellSize * 0.45) + 'px');
+            }
+            
+            // 視窗縮放時，重新繪製連線預覽
+            if (startCell && previewLine && previewLine.style.display !== 'none') {
+                const currentHover = document.querySelector('.cell.path-preview:last-child') || document.querySelector('.cell.selected');
+                if (currentHover) updatePreviewLine(startCell, currentHover);
+            }
         }
         window.addEventListener('resize', syncPanelHeight);
 
@@ -657,6 +697,8 @@
                     board.appendChild(cell);
                 }
             }
+            // 繪製完成後觸發一次幾何校正
+            setTimeout(syncPanelHeight, 10);
         }
 
         function renderWordList() {
